@@ -36,18 +36,3 @@ query_engine = index.as_query_engine()
 response = query_engine.query("湖南科技大学毕业生总人数是多少?")
 
 print(response)
-
-
-# pdf_reader = PyMuPDFReader()
-#
-# documents = pdf_reader.load_data(file_path='/home/kemove/zzh/index_project/1.pdf',metadata=True)
-# for doc in documents:
-#    doc.text = doc.text.decode()
-# print(documents[0])
-
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#
-# model_name_or_path = "/home/kemove/model/qwen/Qwen2-72B-Instruct"
-#
-# Settings.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-# model = AutoModelForCausalLM.from_pretrained(model_name_or_path,device_map="auto",torch_dtype=torch.bfloat16)
