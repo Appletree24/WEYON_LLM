@@ -1,20 +1,26 @@
-# 导入所需的模块和类
-from llama_index.core.node_parser import SimpleNodeParser
-from ModelScopeEmbeddings4LlamaIndex import ModelScopeEmbeddings4LlamaIndex
+import torch
+from llama_index.llms.openai_like import OpenAILike
 from llama_index.core import (
-    VectorStoreIndex,        # 向量存储索引，用于高效检索
-    download_loader,         # 下载加载器，用于加载数据
-    PromptHelper,            # 提示助手，用于生成模型提示
-    StorageContext,          # 存储上下文，用于管理存储
-    SimpleDirectoryReader,   # 简单目录读取器，用于读取文件夹中的文件
-    ServiceContext,          # 服务上下文，用于配置服务
-    set_global_service_context # 设置全局服务上下文
+    VectorStoreIndex,
+    download_loader,
+    PromptHelper,
+    StorageContext,
+    SimpleDirectoryReader,
+    ServiceContext,
+    set_global_service_context
 )
-from llama_index.llms.openai_like import OpenAILike  # 类似OpenAI的LLM模型
 
-import torch  # PyTorch库，用于深度学习模型
+import sys
+import os
 
-# 指定用于嵌入的模型
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
+from utils.ModelScopeEmbeddings4LlamaIndex import ModelScopeEmbeddings4LlamaIndex
+from llama_index.core.node_parser import SimpleNodeParser
+
 embedding_model = "iic/nlp_gte_sentence-embedding_chinese-base"
 
 # 使用SimpleDirectoryReader读取指定目录中的数据文件
