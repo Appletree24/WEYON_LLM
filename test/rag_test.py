@@ -9,8 +9,7 @@ from llama_index.core import (
     ServiceContext,
     set_global_service_context
 )
-from WEYON_LLM.utils.ModelScopeEmbeddings4LlamaIndex import ModelScopeEmbeddings4LlamaIndex
-from llama_index.core.node_parser import SimpleNodeParser
+
 import sys
 import os
 
@@ -18,6 +17,9 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 if project_root not in sys.path:
     sys.path.append(project_root)
+
+from utils.ModelScopeEmbeddings4LlamaIndex import ModelScopeEmbeddings4LlamaIndex
+from llama_index.core.node_parser import SimpleNodeParser
 
 # from llama_index.core.base.llms.types import ChatMessage,MessageRole
 
