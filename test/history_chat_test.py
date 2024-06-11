@@ -1,4 +1,3 @@
-from RAG.history_chat import HistoryChatRAG
 import sys
 import os
 
@@ -7,6 +6,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+from RAG.history_chat import HistoryChatRAG
 
 docx_path = "WEYON_LLM/dataFiles/湖南科技大学2022届毕业生就业质量年度报告12.31.docx"
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     answer_1 = advisor.completion(5, query_1)
     print(answer_1)
 
-    query_2 = "湖南科技大学2022届本科毕业生的灵活就业率是多少？"
+    query_2 = "湖南科技大学2022届毕业生的灵活就业率是多少？"
 
     answer_2 = advisor.completion(5, query_2)
 
