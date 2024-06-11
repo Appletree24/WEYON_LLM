@@ -29,7 +29,7 @@ from llama_index.core.node_parser import SimpleNodeParser
 embedding_model = "iic/nlp_gte_sentence-embedding_chinese-base"
 
 # 使用 SimpleDirectoryReader 从指定目录读取数据文件
-documents = SimpleDirectoryReader(input_dir="index_project/dataFiles").load_data(show_progress=True)
+documents = SimpleDirectoryReader(input_dir="WEYON_LLM/dataFiles").load_data(show_progress=True)
 
 # 创建一个简单的节点解析器，用于将文档解析为节点，设置 chunk_size 为 1024
 node_parser = SimpleNodeParser.from_defaults(chunk_size=1024)
