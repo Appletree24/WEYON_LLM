@@ -28,6 +28,7 @@ from llama_index.core.node_parser import SimpleNodeParser
 # 指定用于嵌入的模型
 embedding_model = "iic/nlp_gte_sentence-embedding_chinese-base"
 
+
 # 使用SimpleDirectoryReader读取指定目录中的数据文件
 documents = SimpleDirectoryReader(input_dir="WEYON_LLM/dataFiles").load_data(show_progress=True)
 
