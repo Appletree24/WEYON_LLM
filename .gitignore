@@ -162,3 +162,7 @@ cython_debug/
 #.idea/
 
 dataFiles/2023年/
+
+*.ipynb
+eval "$(ssh-agent -s)"
+eval "$(ssh-agent -s)".pub
