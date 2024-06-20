@@ -165,3 +165,6 @@ dataFiles/2023年/
 
 *.ipynb
 RAG/query_demo.ipynb
+
+# ZZh Own Files
+RAG_OWN/
