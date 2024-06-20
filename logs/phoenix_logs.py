@@ -34,6 +34,7 @@ embedding_model = "iic/nlp_gte_sentence-embedding_chinese-base"
 # 实例化嵌入模型
 embeddings = ModelScopeEmbeddings4LlamaIndex(model_id=embedding_model)
 
+# NOTICE: max_tokens不宜过大，建议在300以下，过大会导致负数传参
 Settings.llm = OpenAILike(model="qwen2", api_base="http://192.168.100.111:8000/v1",
                           api_key="dummy", max_tokens=1000)
 Settings.embed_model = embeddings  # 设置嵌入模型
@@ -47,7 +48,9 @@ index = VectorStoreIndex.from_documents(documents)
 query_engine = index.as_query_engine()
 
 # 处理用户输入的查询,防止session关闭
-while True:
-    query = input("Q:")  # 接收用户输入的查询
-    response = query_engine.query(query)  # 使用查询引擎查询输入内容
-    print(response)  # 打印查询结果
+try:
+    while True:
+        query = input("Q:")  # 接收用户输入的查询
+        query_engine.query(query)  # 使用查询引擎查询输入内容
+except KeyboardInterrupt:
+    print("Session closed")
