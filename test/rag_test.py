@@ -2,9 +2,6 @@ import torch
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.core import (
     VectorStoreIndex,
-    download_loader,
-    PromptHelper,
-    StorageContext,
     SimpleDirectoryReader,
     ServiceContext,
     set_global_service_context
