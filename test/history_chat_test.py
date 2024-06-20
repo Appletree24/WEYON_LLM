@@ -1,15 +1,9 @@
 import sys
 import os
-
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
 # 请不要格式化代码
-from RAG.history_chat import HistoryChatRAG
+from RAG.src.models.history_chat import HistoryChatRAG
 
-docx_path = "WEYON_LLM/dataFiles/湖南科技大学2022届毕业生就业质量年度报告12.31.docx"
+docx_path = "/home/kemove/zzh/WEYON_LLM/dataFiles/1.docx"
 
 # 问题回答System模板
 qa_system_prompt = """
