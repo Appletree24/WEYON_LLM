@@ -16,7 +16,7 @@ embedding_model = "iic/nlp_gte_sentence-embedding_chinese-base"
 
 # 使用SimpleDirectoryReader读取指定目录中的数据文件
 documents = SimpleDirectoryReader(
-    input_dir="WEYON_LLM/dataFiles").load_data(show_progress=True)
+    input_dir="/home/kemove/zzh/WEYON_LLM/dataFiles").load_data(show_progress=True)
 
 # 创建一个简单的节点解析器，用于将文档解析为节点，设置 chunk_size 为 1024
 node_parser = SimpleNodeParser.from_defaults(chunk_size=1024)
