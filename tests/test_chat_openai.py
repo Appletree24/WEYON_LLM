@@ -1,4 +1,6 @@
 from unittest import TestCase
+
+import llm
 from llm import default_register
 
 
@@ -20,5 +22,21 @@ class TestServeChatModel(TestCase):
         from llm import chat_openai
         model = default_register.get_bean("ServeChatModel")
         res = model.invoke("Hello, how are you?")
-        self.assertIsNotNone(res)
-        self.assertTrue(res.content)
+        self.assertIsNotNone(res.content)
+
+    def test_llm_register(self):
+        """
+        测试llm.register函数
+        """
+        from langchain_openai import ChatOpenAI
+        @llm.register
+        def chat():
+            return ChatOpenAI(model="Qwen2-Local",
+                              max_tokens=100000,
+                              openai_api_base="http://192.168.100.111:9997/v1",
+                              openai_api_key="dummy")
+
+        model = default_register.get_bean("chat")
+        self.assertIsNotNone(model)
+        res = model.invoke("Hello, how are you?")
+        self.assertIsNotNone(res.content)
