@@ -3,9 +3,11 @@
 """
 
 from basic import Register
+from logs import get_logger
+from langchain_core.language_models.chat_models import BaseChatModel
 
 
-class LlmRegister(Register):
+class LlmRegister(Register[BaseChatModel]):
     """
     大语言模型注册表
     """
@@ -14,18 +16,23 @@ class LlmRegister(Register):
         super().__init__()
 
 
-default_llm_context = LlmRegister()
+default_register = LlmRegister()
+
+llm_logger = get_logger("llm")
 
 
-def llm(cls):
+def register(cls):
     """
     装饰器，用于将大语言模型注册到全局变量中
     """
     bean_name = cls.__name__
     try:
+        llm_logger.debug(f"Registering LLM: {bean_name}")
+        default_register.validate_name(bean_name)
         instance = cls()
-        default_llm_context.register(instance, bean_name)
-    except Exception as e:
+        default_register.register(bean_name, instance)
+        llm_logger.info(f"Registered LLM: {bean_name}")
+    except ValueError as e:
+        llm_logger.error(f"Failed to register LLM: {bean_name}", e)
         raise e
-
     return cls
