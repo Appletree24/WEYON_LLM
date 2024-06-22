@@ -30,7 +30,8 @@ class TestServeChatModel(TestCase):
         """
         from langchain_openai import ChatOpenAI
         @llm.register
-        def chat():
+        def chat(logger):
+            logger.info("Chat model loaded")
             return ChatOpenAI(model="Qwen2-Local",
                               max_tokens=100000,
                               openai_api_base="http://192.168.100.111:9997/v1",

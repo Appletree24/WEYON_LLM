@@ -16,7 +16,7 @@ __all_logs = {}
 
 
 def get_logger(name: str = ''
-               , level: LogLevel = LogLevel.INFO
+               , level: LogLevel = LogLevel.DEBUG
                , output_file=None):
     if name in __all_logs:
         return __all_logs[name]

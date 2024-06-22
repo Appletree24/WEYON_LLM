@@ -21,7 +21,7 @@ LEVEL_STYLES = dict(
     critical=dict(background='red', bold=True),
 )
 
-basic_format = '{asctime} - {module:^10} - {name:^15} - {filename}[line:{lineno}] - [{levelname}]: {message}'
+basic_format = '{asctime} - {module:^20} - {name:^20} - {filename}[line:{lineno}] - [{levelname}]: {message}'
 
 basic_format_colored = coloredlogs.ColoredFormatter(
     fmt=basic_format,

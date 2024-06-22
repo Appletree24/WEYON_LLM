@@ -2,9 +2,12 @@
 这个模块包含与大语言模型交互的各种实现
 """
 
+import inspect
+
+from langchain_core.language_models.chat_models import BaseChatModel
+
 from basic import Register
 from logs import get_logger
-from langchain_core.language_models.chat_models import BaseChatModel
 
 
 class LlmRegister(Register[BaseChatModel]):
@@ -27,9 +30,11 @@ def register(cls):
     """
     bean_name = cls.__name__
     try:
+        sig = inspect.signature(cls)
         llm_logger.debug(f"Registering LLM: {bean_name}")
         default_register.validate_name(bean_name)
-        instance = cls()
+        context = {'logger': get_logger(f'llm-{bean_name}')}
+        instance = cls(**context)
         default_register.register(bean_name, instance)
         llm_logger.info(f"Registered LLM: {bean_name}")
     except ValueError as e:
