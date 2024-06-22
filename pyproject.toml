@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "weyon-llm"
+version = "0.1.0"
+description = ""
+authors = ["LeoTan2004 <3509836544@qq.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
