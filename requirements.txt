@@ -1,2 +1,2 @@
 coloredlogs~=15.0.1
-langchain~=0.2.5
+pyyaml~=6.0.1

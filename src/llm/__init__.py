@@ -4,20 +4,11 @@
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from basic import Register
+import basic
 from logs import get_logger
 
 
-class LlmRegister(Register[BaseChatModel]):
-    """
-    大语言模型注册表
-    """
-
-    def __init__(self):
-        super().__init__()
-
-
-default_register = LlmRegister()
+default_register = basic.default_context
 
 llm_logger = get_logger("llm")
 

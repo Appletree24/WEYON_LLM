@@ -13,6 +13,28 @@ class Context(Dict[str, T]):
         return Context(self)
 
 
+class ConfigurationContext(Context[T]):
+    def __init__(self, file_name):
+        super().__init__()
+        config = self.parse(file_name)
+        self.update(config)
+
+    def parse(self, file_name: str):
+        import yaml
+        with open(file_name, 'r') as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+        if config.get('profiles', None):
+            if config['profiles'].get('includes', None):
+                from os import path
+                file_path = path.abspath(file_name)
+                base_path = path.dirname(file_path)
+                profiles = config['profiles']['includes']
+                for profile in profiles:
+                    abs_path = path.join(base_path, profile)
+                    config.update(self.parse(abs_path))
+        return config
+
+
 def _create_bean(cls, ctx: Dict):
     """
     创建bean
@@ -61,3 +83,8 @@ class Register(Context[T]):
 
     def get_bean(self, name: str):
         return self.get(name, None)
+
+
+config = ConfigurationContext('../resources/application.yaml')
+
+default_context = Register(config)

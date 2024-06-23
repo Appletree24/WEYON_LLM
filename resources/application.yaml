@@ -1,0 +1,13 @@
+# 如果希望配置能在中注册对象中生效，清将其放在一级目录下。然后在函数中解析。
+# 可参考 llm/chat_openai.py 中ServeChatModel的init函数。
+
+serve_chat_model_config:
+  openai_api_base: "http://192.168.100.111:9997/v1"
+  model: "Qwen2-Local"
+  max_tokens: 100000
+  openai_api_key: "dummy"
+
+profiles:
+  includes:
+#    可以引入多个yaml配置文件，但是需要避免循环依赖，顺序会影响，最后的优先级最高
+#    - application-2.yaml

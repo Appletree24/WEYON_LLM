@@ -6,10 +6,7 @@ import llm
 @llm.register
 class ServeChatModel(ChatOpenAI):
 
-    def __init__(self, logger):
-        super().__init__(model="Qwen2-Local",
-                         max_tokens=100000,
-                         openai_api_base="http://192.168.100.111:9997/v1",
-                         openai_api_key="dummy")
+    def __init__(self, logger, serve_chat_model_config):
+        super().__init__(**serve_chat_model_config)
 
-        logger.info("ChatModel initialized")
+        logger.info(f"ChatModel initialized with {serve_chat_model_config['openai_api_base']}")
