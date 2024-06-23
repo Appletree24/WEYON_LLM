@@ -20,4 +20,4 @@ def simple_chain(message, history):
 import gradio as gr
 
 if __name__ == "__main__":
-    gr.ChatInterface(simple_chain).launch(share=True)
+    gr.ChatInterface(simple_chain).launch(server_name='0.0.0.0')
