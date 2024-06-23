@@ -9,11 +9,15 @@ from basic import default_context
 _ = simple_chain
 
 
-def simple_chain():
+def simple_chain(message, history):
     chain: Runnable = default_context['simple_chain']
-    for chunk in chain.stream("git 如何使用?"):
-        print(chunk.content, end="")
+    partial_message = ""
+    for chunk in chain.stream(message):
+        partial_message = partial_message + chunk.content
+        yield partial_message
 
+
+import gradio as gr
 
 if __name__ == "__main__":
-    simple_chain()
+    gr.ChatInterface(simple_chain).launch(share=True)
