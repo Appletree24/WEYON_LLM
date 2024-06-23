@@ -4,6 +4,12 @@ import inspect
 T = TypeVar("T")
 
 
+def get_dir(file_path):
+    from os import path
+    file_path = path.abspath(file_path)
+    return path.dirname(file_path)
+
+
 class Context(Dict[str, T]):
     def fork(self):
         """
@@ -26,8 +32,7 @@ class ConfigurationContext(Context[T]):
         if config.get('profiles', None):
             if config['profiles'].get('includes', None):
                 from os import path
-                file_path = path.abspath(file_name)
-                base_path = path.dirname(file_path)
+                base_path = get_dir(file_name)
                 profiles = config['profiles']['includes']
                 for profile in profiles:
                     abs_path = path.join(base_path, profile)
@@ -85,6 +90,6 @@ class Register(Context[T]):
         return self.get(name, None)
 
 
-config = ConfigurationContext('../resources/application.yaml')
+config = ConfigurationContext(get_dir(__file__) + '/../../resources/application.yaml')
 
 default_context = Register(config)
