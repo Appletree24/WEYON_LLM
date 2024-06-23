@@ -7,6 +7,12 @@ serve_chat_model_config:
   max_tokens: 100000
   openai_api_key: "dummy"
 
+qdrant_config:
+  location: "http://192.168.100.111:6333"
+qdrant_vectorstore_config:
+  collection_name: "test_collection"
+
+
 profiles:
   includes:
 #    可以引入多个yaml配置文件，但是需要避免循环依赖，顺序会影响，最后的优先级最高
