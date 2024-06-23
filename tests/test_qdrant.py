@@ -1,11 +1,13 @@
 from unittest import TestCase
-from embedding import modelscope_embedding
-from vector_store import qdrant
+from retriever.embedding import modelscope_embedding
+from retriever.vector_store import qdrant
 from basic import default_context
 from qdrant_client import QdrantClient
 
 
 class TestQdrantVectorStore(TestCase):
+    # 起到一个占位的作用，确保在测试之前已经加载了模型，
+    _ = modelscope_embedding
 
     def test_qdrant_client(self):
         """测试qdrant客户端连接"""

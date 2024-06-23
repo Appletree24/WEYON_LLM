@@ -1,7 +1,7 @@
 from typing import Dict
 
 from langchain_qdrant import Qdrant
-import vector_store
+from retriever import vector_store
 
 
 @vector_store.register
@@ -14,7 +14,7 @@ def qdrant_client(qdrant_config):
 class QdrantVectorStore(Qdrant):
     """Qdrant VectorStore."""
 
-    def __init__(self, qdrant_client,ModelScopeEmbeddings, qdrant_vectorstore_config: Dict):
+    def __init__(self, qdrant_client, ModelScopeEmbeddings, qdrant_vectorstore_config: Dict):
         client = qdrant_client
         collection = 'qdrant_default'
         embed = ModelScopeEmbeddings

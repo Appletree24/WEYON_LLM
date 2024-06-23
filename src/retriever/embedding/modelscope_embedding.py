@@ -1,6 +1,6 @@
 from langchain_core.embeddings.embeddings import Embeddings
 from typing import Any, List
-import embedding
+from retriever import embedding
 
 
 @embedding.register
