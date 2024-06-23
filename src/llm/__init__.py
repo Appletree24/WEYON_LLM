@@ -2,8 +2,6 @@
 这个模块包含与大语言模型交互的各种实现
 """
 
-from langchain_core.language_models.chat_models import BaseChatModel
-
 import basic
 from logs import get_logger
 
@@ -15,7 +13,7 @@ llm_logger = get_logger("llm")
 
 def register(cls):
     """
-    装饰器，用于将大语言模型注册到全局变量中
+    用于将大语言模型注册到全局上下文
     """
     bean_name = cls.__name__
     try:
