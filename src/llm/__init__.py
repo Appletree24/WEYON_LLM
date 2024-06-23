@@ -1,5 +1,5 @@
 """
-这个模块包含与大语言模型交互的各种实现
+这个模块包含与LangChain的各种实现
 """
 
 import basic
@@ -13,7 +13,7 @@ llm_logger = get_logger("llm")
 
 def register(cls):
     """
-    用于将大语言模型注册到全局上下文
+    用于将LangChain注册到全局上下文
     """
     bean_name = cls.__name__
     try:

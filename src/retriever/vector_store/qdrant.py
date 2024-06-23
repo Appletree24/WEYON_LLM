@@ -3,6 +3,10 @@ from typing import Dict
 from langchain_qdrant import Qdrant
 from retriever import vector_store
 
+from ..embedding import modelscope_embedding
+
+_ = modelscope_embedding
+
 
 @vector_store.register
 def qdrant_client(qdrant_config):
