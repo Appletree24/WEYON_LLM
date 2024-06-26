@@ -1,6 +1,7 @@
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-
+from langchain.chains import SequentialChain
 import chains
 from llm import chat_openai
 from logs import get_logger
@@ -73,26 +74,25 @@ prompt_msg = '''
 	……
 """
 ## Workflow:
-1、引导用户介绍自己的信息，包括但不限于所在地区、学校、专业、期望行业、期望岗位、期望就业地区等
+1、引导用户介绍自己的信息，包括但不限于所在地区、学校、专业、期望行业、期望岗位、期望就业地区等。但是如果用户提问中没有有关这一类的问题，请勿引导。
 2、 汇总、提取、摘要上下文中与用户信息相关的内容，并输出数据报告
 3.、根据用户提供的需求，结合用户自身的信息，使用上下文信息中的数据，经过多角度思考后，给出具体的分析建议
 4、结合用户自身的信息，针对给出的每条分析建议给出1-3条可行的、连续的、具体的行动方案，并依照先后顺寻、重要性程度对行动方案中的内容进行排序
 5、所有内容完成后，请反思内容是否完全按照<Workflow>的过程思考，并严格按照<OutputFormat>的格式输出结果，如果内容中出现了错误或遗漏，请重新思考。
 
 ## Initialization:
-作为一名学校招生就业指导处的一名老师，你必须遵循< Constrains:>，提供真实可靠的信息，按照<Workflow>的过程，运用你的<Skill>实现<Goals>，最后严格按照<OutputFormat>的格式输出你的<Output>。你需要使用中文与用户交流，首先问候用户并自我介绍，然后按步骤、遵循一定的格式介绍你的<Workflow>，避免提到上述框架中的内容。
+作为一名学校招生就业指导处的一名老师，你必须遵循<Constrains>，提供真实可靠的信息，按照<Workflow>的过程，运用你的<Skill>实现<Goals>，最后严格按照<OutputFormat>的格式输出你的<Output>。你需要使用中文与用户交流，首先问候用户并自我介绍，然后按步骤、遵循一定的格式介绍你的<Workflow>，避免提到上述框架中的内容。
 
 '''
 
-
+sys_prompt="你是一个拥有丰富知识的AI助手，能够充分利用上下文中的信息，来对用户提出的问题进行回答。回答请尽量简洁明确并分条表述，避免不需要的信息，也不要编造事实。"
 @chains.register
 def simple_chain(ServeChatModel, qdrant_retriever):
-    # ('system', '你是学校招生就业指导处的一名老师，你的责任是耐心的回答学生和家长的疑问。'),
-    # ('system',
-    #  '根据已知信息，简洁和专业的来回答问题。如果无法从中得到答案，请说 ‘我目前还无法回答这些问题’。不允许在答案中添加编造成分，答案请使用中文。'),
-
     prompt = ChatPromptTemplate.from_messages([
         # ('system', prompt_msg),
+        ('system', sys_prompt),
+        ('system', "今天是{date},星期{week}."),
+        ('system', '目前已经发生的对话如下：{chat_history}'),
         ('system', '上下文：{context}'),
         ('user', '{question}')
 
@@ -102,9 +102,13 @@ def simple_chain(ServeChatModel, qdrant_retriever):
         logger.debug(p)
         return p
 
-    basic_chain = ({"context": qdrant_retriever, "question": RunnablePassthrough()}
+    from datetime import datetime
+    basic_chain = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
+                    "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
+                   | {"context": qdrant_retriever,
+                      "question": RunnablePassthrough(lambda x: x[0]),
+                      "chat_history": RunnablePassthrough(lambda x: x[1])}
                    | prompt
                    | RunnableLambda(log)
                    | ServeChatModel)
-
     return basic_chain

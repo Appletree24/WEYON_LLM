@@ -3,6 +3,7 @@
 """
 from langchain_core.runnables import Runnable
 
+import logs
 from chains import simple_chain
 from basic import default_context
 
@@ -12,7 +13,18 @@ _ = simple_chain
 def simple_chain(message, history):
     chain: Runnable = default_context['simple_chain']
     partial_message = ""
-    for chunk in chain.stream(message):
+    # 历史对话总是从用户开始，然后机器人
+    history_msg = []
+    for i, (user_message, bot_message) in enumerate(history):
+        if isinstance(user_message, list):
+            user_message = "".join(user_message)
+        history_msg.append(('user', user_message))
+        if isinstance(bot_message, list):
+            bot_message = "".join(bot_message)
+        history_msg.append(('ai', bot_message))
+    history_msg = str(history_msg)
+    logs.get_logger('chat').debug(history_msg)
+    for chunk in chain.stream([message, history_msg]):
         partial_message = partial_message + chunk.content
         yield partial_message
 
@@ -20,4 +32,4 @@ def simple_chain(message, history):
 import gradio as gr
 
 if __name__ == "__main__":
-    gr.ChatInterface(simple_chain).launch(server_name='0.0.0.0')
+    gr.ChatInterface(simple_chain).launch()
