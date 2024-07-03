@@ -3,7 +3,7 @@ from typing import Dict
 from langchain_qdrant import Qdrant
 from retriever import vector_store
 
-from ..embedding import modelscope_embedding
+from src.embedding import modelscope_embedding
 
 _ = modelscope_embedding
 
@@ -23,8 +23,7 @@ class QdrantVectorStore(Qdrant):
         collection = 'qdrant_default'
         embed = ModelScopeEmbeddings
         if qdrant_vectorstore_config:
-            collection = qdrant_vectorstore_config.get('collection_name', 'qdrant_default')
-        super().__init__(client=client
-                         , collection_name=collection
-                         , embeddings=embed
+            collection = qdrant_vectorstore_config.get(
+                'collection_name', 'qdrant_default')
+        super().__init__(client=client, collection_name=collection, embeddings=embed
                          )
