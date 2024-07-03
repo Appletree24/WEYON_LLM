@@ -1,3 +1,14 @@
+#!//home/kemove/miniconda3/envs/rag_zzh/lib/ python3.11.0
+# -*- coding:utf-8 -*-
+# @FileName  :modelscope_embedding.py
+# @Time      :2024/07/03 15:41:28
+# @Author    :Appletree24
+# @Email     :1246908638zxc@gmail.com
+# @Software  :Vscode
+# @Description: 从ModelScope上下载embedding,为了兼容Langchain
+# @Version   :1.0
+# 请不要用GPT生成代码中的注释，谢谢。
+
 from langchain_core.embeddings.embeddings import Embeddings
 from typing import Any, List
 from retriever import embedding
