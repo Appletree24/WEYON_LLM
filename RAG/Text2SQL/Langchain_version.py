@@ -35,8 +35,8 @@ db = SQLDatabase.from_uri(db_uri)
 
 llm = ChatOpenAI(model="qwen2", max_tokens=100, max_retries=2)
 
-chain = create_sql_query_chain()
 execute_query = QuerySQLDataBaseTool(db=db)
 write_query = create_sql_query_chain(llm, db)
 chain = write_query | execute_query
-chain.invoke({"question": "请告诉我表中sfslb字段的数据类型"})
+response = chain.invoke({"question": "请告诉我表中sfslb字段的数据类型"})
+print(response)

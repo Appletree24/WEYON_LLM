@@ -14,6 +14,8 @@ from llama_index.core.response.notebook_utils import display_source_node
 from llama_index.core.retrievers import NLSQLRetriever
 from llama_index.core import VectorStoreIndex
 from llama_index.core import SQLDatabase
+from llama_index.core import ServiceContext, set_global_service_context
+from src.embedding.modelscope_embedding import ModelScopeEmbeddings
 from llama_index.core.objects import (
     SQLTableNodeMapping,
     ObjectIndex,
@@ -33,9 +35,16 @@ from llama_index.llms.openai_like import OpenAILike
 # Define the embedding model to be used
 embedding_model = "iic/nlp_gte_sentence-embedding_chinese-base"
 
+embeedings = ModelScopeEmbeddings(
+    modelscope_embeddings_model_id=embedding_model)
+
+
 # Initialize the LLM with model details and API configuration
 llm = OpenAILike(model="qwen2", api_base="http://192.168.100.111:9997/v1",
                  api_key="dummy", max_tokens=100)
+
+service_context = ServiceContext.from_defaults(embed_model=embeedings, llm=llm)
+set_global_service_context(service_context)
 
 # Create an in-memory SQLite database engine
 engine = create_engine("sqlite:///:memory:")
@@ -101,22 +110,6 @@ table_node_mapping = SQLTableNodeMapping(sql_database)
 table_schema_objs = [
     SQLTableSchema(table_name="city_stats")
 ]
-
-# Create an ObjectIndex from the table schemas and mapping, using VectorStoreIndex
-obj_index = ObjectIndex.from_objects(
-    table_schema_objs,
-    table_node_mapping,
-    VectorStoreIndex,
-)
-
-# Create a SQLTableRetrieverQueryEngine for retrieving query results
-query_engine = SQLTableRetrieverQueryEngine(
-    sql_database, obj_index.as_retriever(similarity_top_k=1)
-)
-
-# Execute a query to find the city with the highest population
-response = query_engine.query("Which city has the highest population?")
-print(response)
 
 # Create an NLSQLRetriever for natural language SQL retrieval with raw results
 nl_sql_retriever = NLSQLRetriever(
