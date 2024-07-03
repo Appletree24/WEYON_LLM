@@ -5,7 +5,6 @@ from llm import default_register
 
 
 class TestServeChatModel(TestCase):
-
     _ = chat_openai
 
     def test_serve_chat_model(self):
@@ -32,10 +31,11 @@ class TestServeChatModel(TestCase):
         @llm.register
         def chat(logger):
             logger.info("Chat model loaded")
-            return ChatOpenAI(model="qwen2",
-                              max_tokens=100000,
-                              openai_api_base="http://192.168.100.111:9997/v1",
-                              openai_api_key="dummy")
+            config = default_register.get('serve_chat_model_config')
+            return ChatOpenAI(model=config['model'],
+                              max_tokens=config['max_tokens'],
+                              openai_api_base=config['openai_api_base'],
+                              openai_api_key=config['openai_api_key'])
 
         model = default_register.get_bean("chat")
         self.assertIsNotNone(model)
