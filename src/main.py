@@ -1,10 +1,10 @@
 """
 启动入口
 """
-import gradio as gr
 from langchain_core.runnables import Runnable
 
 import logs
+from agent.fay_agent import FayAgentCore
 from chains import simple_chain
 from basic import default_context
 
@@ -30,5 +30,24 @@ def simple_chain(message, history):
         yield partial_message
 
 
+agent = FayAgentCore()
+
+
+def simple_agent(message, history):
+    user_input = message
+    return agent.run(user_input)
+
+
+import gradio as gr
+
 if __name__ == "__main__":
-    gr.ChatInterface(simple_chain).launch()
+    chain_interface = gr.ChatInterface(simple_chain, title="Simple Chain")
+    agent_interface = gr.ChatInterface(simple_agent, title="Simple Agent")
+    from fastapi import FastAPI
+
+    app = FastAPI()
+    gr.mount_gradio_app(app, chain_interface, path="/chain")
+    gr.mount_gradio_app(app, agent_interface, path="/agent")
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=7860)
