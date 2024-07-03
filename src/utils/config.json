@@ -1,39 +1,38 @@
 {
-  "attribute": {
-    "age": "",
-    "birth": "",
-    "constellation": "",
-    "contact": "",
-    "gender": "",
-    "hobby": "",
-    "job": "",
-    "name": "",
-    "voice": "alloy",
-    "zodiac": ""
-  },
-  "interact": {
-    "QnA": "",
-    "maxInteractTime": 15,
-    "perception": {
-      "chat": 0,
-      "follow": 0,
-      "gift": 0,
-      "indifferent": 0,
-      "join": 0
+    "attribute": {
+        "age": "",
+        "birth": "",
+        "constellation": "",
+        "contact": "",
+        "gender": "",
+        "hobby": "",
+        "job": "",
+        "name": "",
+        "voice": "alloy",
+        "zodiac": ""
     },
-    "playSound": true,
-    "visualization": false
-  },
-  "items": [],
-  "source": {
-    "record": {
-      "device": "",
-      "enabled": false
+    "interact": {
+        "QnA": "",
+        "maxInteractTime": 15,
+        "perception": {
+            "chat": 0,
+            "follow": 0,
+            "gift": 0,
+            "indifferent": 0,
+            "join": 0
+        },
+        "playSound": true,
+        "visualization": false
     },
-    "tts_enabled": true,
-    "wake_word": "\u4f60\u597d",
-    "wake_word_enabled": true,
-    "wake_word_type": "front"
-  }
+    "items": [],
+    "source": {
+        "record": {
+            "device": "",
+            "enabled": false
+        },
+        "tts_enabled": true,
+        "wake_word": "\u4f60\u597d",
+        "wake_word_enabled": true,
+        "wake_word_type": "front"
+    }
 }
-

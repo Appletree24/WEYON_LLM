@@ -1,6 +1,7 @@
 """
 启动入口
 """
+import gradio as gr
 from langchain_core.runnables import Runnable
 
 import logs
@@ -28,8 +29,6 @@ def simple_chain(message, history):
         partial_message = partial_message + chunk.content
         yield partial_message
 
-
-import gradio as gr
 
 if __name__ == "__main__":
     gr.ChatInterface(simple_chain).launch()

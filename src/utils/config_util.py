@@ -18,8 +18,8 @@ key_gpt_tts_key = None
 gpt_base_url = "http://192.168.100.111:9997/v1"
 gpt_tts_base_url = None
 ASR_mode = None
-local_asr_ip = None 
-local_asr_port = None 
+local_asr_ip = None
+local_asr_port = None
 gpt_model_engine = "Qwen2_Local"
 tavily_api_key = "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"
 key_ms_tts_key = None
@@ -29,6 +29,7 @@ proxy_config = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 读取配置文件
+
 
 def load_config():
     global config
@@ -53,7 +54,8 @@ def load_config():
 
     system_config = ConfigParser()
     # print(os.path.join(BASE_DIR, 'mySystem.conf'))
-    system_config.read(os.path.join(BASE_DIR, 'mySystem.conf'), encoding='UTF-8')
+    system_config.read(os.path.join(
+        BASE_DIR, 'mySystem.conf'), encoding='UTF-8')
     # print(system_config['key'])
     # key_ali_nls_key_id = system_config.get('key', 'ali_nls_key_id')
     # key_ali_nls_key_secret = system_config.get('key', 'ali_nls_key_secret')
@@ -73,13 +75,16 @@ def load_config():
     gpt_model_engine = system_config.get('key', 'gpt_model_engine')
     tavily_api_key = system_config.get('key', 'tavily_api_key')
     # print(os.path.join(BASE_DIR, 'config.json'))
-    config = json.load(codecs.open(os.path.join(BASE_DIR, 'config.json'), encoding='utf-8'))
+    config = json.load(codecs.open(os.path.join(
+        BASE_DIR, 'config.json'), encoding='utf-8'))
+
 
 def save_config(config_data):
     global config
     config = config_data
     file = codecs.open('config.json', mode='w', encoding='utf-8')
-    file.write(json.dumps(config, sort_keys=True, indent=4, separators=(',', ': ')))
+    file.write(json.dumps(config, sort_keys=True,
+               indent=4, separators=(',', ': ')))
     file.close()
     # for line in json.dumps(config, sort_keys=True, indent=4, separators=(',', ': ')).split("\n"):
     #     print(line)
