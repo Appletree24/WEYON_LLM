@@ -11,7 +11,7 @@
 
 from langchain_core.embeddings.embeddings import Embeddings
 from typing import Any, List
-from retriever import embedding
+import embedding
 
 
 @embedding.register
@@ -33,7 +33,7 @@ class ModelScopeEmbeddings(Embeddings):
             from modelscope.pipelines import pipeline
             from modelscope.utils.constant import Tasks
             self.embed = pipeline(
-                Tasks.sentence_embedding, model=self.model_id)
+                Tasks.sentence_embedding, model=modelscope_embeddings_model_id)
 
         except ImportError as e:
             raise ValueError(
