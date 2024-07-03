@@ -1,5 +1,5 @@
 from unittest import TestCase
-from retriever.embedding import default_register
+from src.embedding import default_register
 
 
 class TestModelScopeEmbeddings(TestCase):

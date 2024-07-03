@@ -1,6 +1,6 @@
 import retriever
 
-from retriever.embedding import modelscope_embedding
+from src.embedding import modelscope_embedding
 from retriever.vector_store import qdrant
 from langchain_core.vectorstores import VectorStoreRetriever
 
