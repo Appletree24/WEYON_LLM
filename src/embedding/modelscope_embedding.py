@@ -38,3 +38,31 @@ class ModelScopeEmbeddings(Embeddings):
         except ImportError as e:
             raise ValueError(
                 "Could not import some python packages." "Please install it with `pip install modelscope`.") from e
+
+    def _get_query_embedding(self, query: str) -> List[float]:
+        # 将查询中的换行符替换为空格
+        text = query.replace("\n", " ")
+        # 准备输入格式
+        inputs = {"source_sentence": [text]}
+        # 获取嵌入向量并返回第一个结果的嵌入向量
+        return self.embed(input=inputs)['text_embedding'][0].tolist()
+
+    def _get_text_embedding(self, text: str) -> List[float]:
+        # 将文本中的换行符替换为空格
+        text = text.replace("\n", " ")
+        # 准备输入格式
+        inputs = {"source_sentence": [text]}
+        # 获取嵌入向量并返回第一个结果的嵌入向量
+        return self.embed(input=inputs)['text_embedding'][0].tolist()
+
+    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
+        # 将每个文本中的换行符替换为空格
+        texts = list(map(lambda x: x.replace("\n", " "), texts))
+        # 准备输入格式
+        inputs = {"source_sentence": texts}
+        # 获取所有文本的嵌入向量并返回
+        return self.embed(input=inputs)['text_embedding'].tolist()
+
+    async def _aget_query_embedding(self, query: str) -> List[float]:
+        # 异步方法获取查询的嵌入向量，调用同步版本
+        return self._get_query_embedding(query)
