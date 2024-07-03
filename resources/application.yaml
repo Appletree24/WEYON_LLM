@@ -3,7 +3,7 @@
 
 serve_chat_model_config:
   openai_api_base: "http://192.168.100.111:9997/v1"
-  model: "gpt-4"
+  model: "qwen2"
   max_tokens: 9999999999
   openai_api_key: "dummy"
 
@@ -11,7 +11,7 @@ qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
   collection_name: "test_collection"
-
+modelscope_embeddings_model_id: iic/nlp_gte_sentence-embedding_chinese-base
 
 profiles:
   includes:

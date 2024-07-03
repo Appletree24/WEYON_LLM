@@ -32,7 +32,7 @@ class TestServeChatModel(TestCase):
         @llm.register
         def chat(logger):
             logger.info("Chat model loaded")
-            return ChatOpenAI(model="gpt-4",
+            return ChatOpenAI(model="qwen2",
                               max_tokens=100000,
                               openai_api_base="http://192.168.100.111:9997/v1",
                               openai_api_key="dummy")
