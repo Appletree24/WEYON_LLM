@@ -53,7 +53,6 @@ class Province1:
 
     def search(self, para):
         data = [para]
-        print(data)
         inputs = {
             "source_sentence": data,
             "sentences_to_compare": self.text

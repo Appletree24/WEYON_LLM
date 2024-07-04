@@ -34,10 +34,8 @@ class ListSql(BaseTool):
                 sql = json_object['sql']
             else:
                 sql = json_object['query']
-            print(sql)
             province1 = Province1()
             sql = province1.replace_quoted_values(sql)
-            print(sql)
             conn = pymysql.connect(host='am-wz9el267w54i2r7ip131930o.ads.aliyuncs.com', user='ai_user',
                                    password='Ai@use_15379',
                                    database='ai_use',
@@ -50,9 +48,8 @@ class ListSql(BaseTool):
             data = cursor.fetchall()
             conn.commit()
             conn.close()
-            print(data)
-            print("查询成功")
-            return "请你告诉用户已经成功查询"
+            # print(data)
+            return f"查询已经成功，数据如下{data}"
         except Exception as e:
             print("错误", e)
             return "获取就业数据失败"
