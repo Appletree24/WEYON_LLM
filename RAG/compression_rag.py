@@ -98,7 +98,6 @@ response = qa("What's the ZeRO-3, if you know it, plz introduce it in detail")
 print(response['result'].split("<|endoftext|>")[0])
 
 
-
 # relevant_docs = retriever.get_relevant_documents(
 #    query="What is ZeRO-3 stage?")
 
