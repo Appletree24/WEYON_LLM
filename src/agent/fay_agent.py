@@ -12,19 +12,28 @@ from agent.tools.PythonExecutor import PythonExecutor
 from agent.tools.WebPageRetriever import WebPageRetriever
 from agent.tools.WebPageScraper import WebPageScraper
 from agent.tools.ListSql import ListSql
+from agent.data.province import ProvinceData
+from agent.data.city import CityData
+
 from langchain import hub
 from langchain.agents import AgentExecutor, create_react_agent, Tool
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate
-
+from langchain_community.utilities import SQLDatabase
 from langchain_community.callbacks import get_openai_callback
+from langchain_community.tools.sql_database.tool import (
+    InfoSQLDatabaseTool,
+    ListSQLDatabaseTool,
+    QuerySQLCheckerTool,
+    QuerySQLDataBaseTool,
+)
 
 import utils.config_util as utils
-from agent.data.province import ProvinceData
-from agent.data.city import CityData
+from agent.toolkit.toolkit import MySQLDatabaseToolkit
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 
 class FayAgentCore():
@@ -40,7 +49,14 @@ class FayAgentCore():
         utils.load_config()
         # 内存保存聊天历史
         self.chat_history = []
-        # 创建用户进程，保证可以记忆上下文
+
+        db_user = "root"
+        db_password = "AI20240520"
+        db_host = "192.168.100.111"
+        db_name = "ai_use"
+        db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
+        db = SQLDatabase.from_uri(db_uri)
+        self.db = db
 
         # 创建agent chain
         my_timer = MyTimer()
@@ -51,23 +67,81 @@ class FayAgentCore():
         python_executor = PythonExecutor()
         web_page_retriever = WebPageRetriever()
         web_page_scraper = WebPageScraper()
-        list_sql = ListSql()
+        # list_sql = ListSql()
+        # toolkit = MySQLDatabaseToolkit(db=db, llm=self.llm)
+        # tools = toolkit.get_tools()
+        """Get the tools in the toolkit."""
+        list_sql_database_tool = ListSQLDatabaseTool(db=self.db)
+        # info_sql_database_tool_description = (
+        #     "Input to this tool is a comma-separated list of tables, output is the "
+        #     "schema and sample rows for those tables. "
+        #     "Be sure that the tables actually exist by calling "
+        #     f"{list_sql_database_tool.name} first! "
+        #     "Example Input: table1, table2, table3"
+        # )
+        info_sql_database_tool = InfoSQLDatabaseTool(
+            db=self.db,
+            # description=info_sql_database_tool_description
+        )
+        # query_sql_database_tool_description = (
+        #     "Input to this tool is a detailed and correct SQL query, output is a "
+        #     "result from the database. If the query is not correct, an error message "
+        #     "will be returned. If an error is returned, rewrite the query, check the "
+        #     "query, and try again. If you encounter an issue with Unknown column "
+        #     f"'xxxx' in 'field list', use {info_sql_database_tool.name} "
+        #     "to query the correct table fields."
+        # )
+        query_sql_database_tool = QuerySQLDataBaseTool(
+            db=self.db,
+            # description=query_sql_database_tool_description
+        )
+        # query_sql_checker_tool_description = (
+        #     "Use this tool to double check if your query is correct before executing "
+        #     "it. Always use this tool before executing a query with "
+        #     f"{query_sql_database_tool.name}!"
+        # )
+        query_sql_checker_tool = QuerySQLCheckerTool(
+            db=self.db, llm=self.llm,
+            # description=query_sql_checker_tool_description
+        )
 
         # 输入数据处理
         self.province_data = ProvinceData()
         self.city_data = CityData()
 
         self.tools = [
+            # Tool(
+            #     name=python_executor.name,
+            #     func=python_executor.run,
+            #     description=python_executor.description
+            # ),
+            # Tool(
+            #     name=list_sql.name,
+            #     func=list_sql.run,
+            #     description=list_sql.description
+            # ),
             Tool(
-                name=python_executor.name,
-                func=python_executor.run,
-                description=python_executor.description
+                name=list_sql_database_tool.name,
+                func=list_sql_database_tool.run,
+                description=list_sql_database_tool.description,
             ),
             Tool(
-                name=list_sql.name,
-                func=list_sql.run,
-                description=list_sql.description
+                name=info_sql_database_tool.name,
+                func=info_sql_database_tool.run,
+                description=info_sql_database_tool.description
             ),
+            Tool(
+                name=query_sql_checker_tool.name,
+                func=query_sql_checker_tool.run,
+                description=query_sql_checker_tool.description
+            ),
+            Tool(
+                name=query_sql_database_tool.name,
+                func=query_sql_database_tool.run,
+                description=query_sql_database_tool.description
+            ),
+
+
             Tool(
                 name=my_timer.name,
                 func=my_timer.run,
@@ -94,6 +168,9 @@ class FayAgentCore():
                 description=query_time.description
             )
         ]
+        # self.tools = self.tools.append(tools)
+        # print(type(self.tools))
+        # print(type(tools))
         if str(utils.tavily_api_key) != '':
             self.tools.append(TavilySearchResults(max_results=1))
         # https://python.langchain.com/v0.1/docs/modules/agents/agent_types/react/   用于记忆上下文
