@@ -158,7 +158,7 @@
 
         {tools}
 
-        To use a tool, please use the following format, and if tool_name is ListSql please let him output the query results directly without going through the model:
+        To use a tool, please use the following format,and these keywords MUST never be translated and transformed:
 
         ```
         Thought: Do I need to use a tool? Yes
