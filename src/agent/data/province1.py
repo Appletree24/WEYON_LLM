@@ -62,7 +62,7 @@ class Province1:
         max = 0
         index = 0
         # 如果是与这些城市一定都不相关的话，则产生的相似度值基本都不会超过0.5
-        threshold = 0.5
+        threshold = 0.666666
         flag = 0
         scores = result['scores']
         for i in range(len(scores)):
@@ -78,5 +78,19 @@ class Province1:
 if __name__ == "__main__":
     p = Province1()
     result = p.replace_quoted_values(
-        sql="SELECT * FROM dw_s_employment_company WHERE xxcs = '湖南' AND lsbyqx = '湖北'")
+        sql="SELECT xxmc, xxlx, sfslb FROM dw_s_employment_company WHERE xxsf = '湖南省' AND xxlx = '师范'")
+    xxmc_pattern = r"xxmc\s*=\s*'([^']*)'"
+    lsbyqx_pattern = r"lsbyqx\s*=\s*'([^']*)'"
+    xxmc_match_result = re.search(xxmc_pattern, result)
+    lsbyqx_match_result = re.search(lsbyqx_pattern, result)
+    if xxmc_match_result:
+        result = result.replace(
+            xxmc_match_result.group(1), "湖南大学")
+    else:
+        print("匹配失败")
+    if lsbyqx_match_result:
+        result = result.replace(
+            lsbyqx_match_result.group(1), "湖北")
+    else:
+        print("匹配失败")
     print(result)
