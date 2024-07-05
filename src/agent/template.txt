@@ -16,7 +16,7 @@
 
         {tools}
 
-        To use a tool, please use the following format,and these keywords MUST never be translated and transformed:
+        To use a tool, please use the following format,and these keywords MUST never be translated and transformed. If you need to use sql for query, you MUST use sql_query_header tool first.:
 
         ```
         Thought: Do I need to use a tool? Yes

@@ -247,7 +247,6 @@ response = chain.invoke({"question": "查询20条云就业大学就业数据"})
 
 print(response)
 
-
 # chain = write_query | execute_query
 # response = chain.invoke(
 #    {"question": "请你查询表中所有专科生毕业或专科毕业生的人数"})
