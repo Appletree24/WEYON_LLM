@@ -225,12 +225,12 @@ db_name = "ai_use"
 db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
 db = SQLDatabase.from_uri(db_uri)
 
-llm = ChatOpenAI(model="InternLM2-chat-7B-SQL", max_tokens=5000, max_retries=2)
+llm = ChatOpenAI(model="qwen2", max_tokens=5000, max_retries=2)
 
 write_query = create_sql_query_chain(llm, db, prompt=prompt)
 
 print("生成的SQL为：", write_query.invoke(
-    {"question": "请你查询就读于长理的学生人数", "table_info": table_info}))
+    {"question": "查询云就业大学就业数据", "table_info": table_info}))
 
 execute_query = QuerySQLDataBaseTool(db=db)
 
@@ -243,7 +243,8 @@ chain = (
     | StrOutputParser()
 )
 
-response = chain.invoke({"question": "请你查询表中长理的学生人数"})
+response = chain.invoke({"question": "查询20条云就业大学就业数据"})
+
 print(response)
 
 
