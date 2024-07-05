@@ -38,6 +38,6 @@ llm = ChatOpenAI(model="qwen2", max_tokens=5000, max_retries=2)
 execute_query = QuerySQLDataBaseTool(db=db)
 write_query = create_sql_query_chain(llm, db)
 chain = write_query | execute_query
-response = chain.invoke(
-    {"question": "前提是——师范类学生会就读于综合类院校或师范类院校，请你在此前提下，告诉我表中10名来自长沙市的师范生以及他们的师范生类型"})
-print(response)
+# response = chain.invoke(
+#     {"question": "前提是——师范类学生会就读于综合类院校或师范类院校，请你在此前提下，告诉我表中10名来自长沙市的师范生以及他们的师范生类型"})
+# print(response)
