@@ -1,3 +1,14 @@
+#!//home/kemove/miniconda3/envs/rag_zzh/lib/ python3.11.0
+# -*- coding:utf-8 -*-
+# @FileName  :inference.py
+# @Time      :2024/07/05 14:41:42
+# @Author    :Appletree24
+# @Email     :1246908638zxc@gmail.com
+# @Software  :Vscode
+# @Description: SQLCoder启动代码
+# @Version   :1.0
+# 请不要用GPT生成代码中的注释，谢谢。
+
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import argparse
