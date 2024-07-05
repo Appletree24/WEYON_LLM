@@ -1,5 +1,13 @@
-# 暂时没琢磨出来怎么接入，文件会报错
-
+#!//home/kemove/miniconda3/envs/rag_zzh/lib/ python3.11.0
+# -*- coding:utf-8 -*-
+# @FileName  :Initial.py
+# @Time      :2024/07/05 14:42:09
+# @Author    :Appletree24
+# @Email     :1246908638zxc@gmail.com
+# @Software  :Vscode
+# @Description:暂时没琢磨出来怎么接入，文件会报错
+# @Version   :1.0
+# 请不要用GPT生成代码中的注释，谢谢。
 
 # from vanna.remote import VannaDefault
 # vn = VannaDefault(model='chinook', api_key='e85b976e13f940868ef53b9129ffdaf0')
