@@ -10,7 +10,7 @@ serve_chat_model_config:
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
-  collection_name: "kb_2024_07_02"
+  collection_name: "test_collection"
 modelscope_embeddings_model_id: iic/nlp_gte_sentence-embedding_chinese-base
 
 profiles:

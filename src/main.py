@@ -11,7 +11,7 @@ from basic import default_context
 _ = simple_chain
 
 
-def simple_chain(message, history):
+def chain(message, history):
     chain: Runnable = default_context['simple_chain']
     partial_message = ""
     # 历史对话总是从用户开始，然后机器人
@@ -30,7 +30,7 @@ def simple_chain(message, history):
         yield partial_message
 
 
-def simple_rag(message, history):
+def rag(message, history):
     chain: Runnable = default_context['simple_rag']
     partial_message = ""
     # 历史对话总是从用户开始，然后机器人
@@ -47,6 +47,7 @@ def simple_rag(message, history):
     prompt = chain.invoke([message, history_msg])
     return str(prompt)
 
+
 agent = FayAgentCore()
 
 
@@ -58,9 +59,9 @@ def simple_agent(message, history):
 import gradio as gr
 
 if __name__ == "__main__":
-    chain_interface = gr.ChatInterface(simple_chain, title="Simple Chain")
-    rag_interface = gr.ChatInterface(simple_rag, title="Simple Rag")
-    agent_interface = gr.ChatInterface(simple_agent, title="Simple Agent")
+    chain_interface = gr.ChatInterface(chain, title="Chain")
+    rag_interface = gr.ChatInterface(rag, title="Rag")
+    agent_interface = gr.ChatInterface(simple_agent, title="Agent")
     from fastapi import FastAPI
 
     app = FastAPI()

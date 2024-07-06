@@ -15,36 +15,32 @@ sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上�
 
 
 @chains.register
-def simple_rag(ServeChatModel, qdrant_retriever):
+def simple_rag(qdrant_retriever):
     prompt = ChatPromptTemplate.from_messages([
-        # ('system', prompt_msg),
         ('system', sys_prompt),
         ('system', "今天是{date},星期{week}."),
         ('system', '目前已经发生的对话如下：{chat_history}'),
         ('system', '上下文：{context}'),
         ('user', '{question}')
+
     ])
 
     def log(p):
         logger.debug(p)
         return p
 
-    def tmp_get_config():
-        return {"configurable": {"search_kwargs_qdrant": {"k": 3}}}
-
     from datetime import datetime
-    basic_chain = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
-                    "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
-                   | {"context": RunnableLambda(lambda x: qdrant_retriever.invoke(x, config=tmp_get_config())),
-                      "question": RunnablePassthrough(lambda x: x[0]),
-                      "chat_history": RunnablePassthrough(lambda x: x[1])}
-                   | prompt
-                   | RunnableLambda(log))
-    return basic_chain
-
+    basic_rag = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
+                  "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
+                 | {"context": qdrant_retriever,
+                    "question": RunnablePassthrough(lambda x: x[0]),
+                    "chat_history": RunnablePassthrough(lambda x: x[1])}
+                 | prompt
+                 | RunnableLambda(log))
+    return basic_rag
 
 @chains.register
-def simple_chain(simple_rag, ServeChatModel):
+def simple_chain(ServeChatModel, simple_rag):
     basic_chain = (simple_rag
                    | ServeChatModel)
     return basic_chain
