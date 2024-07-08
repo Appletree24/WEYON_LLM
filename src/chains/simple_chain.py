@@ -11,11 +11,11 @@ _ = qdrant_retriever
 
 logger = get_logger('simple_chain')
 
-sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上下文中的信息，来对用户提出的问题进行回答。不要编造事实。"
+sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上下文中的信息，来对用户提出的问题进行回答。回答请尽量简洁明确并分条表述，避免不需要的信息，也不要编造事实。"
 
 
 @chains.register
-def simple_rag(qdrant_retriever):
+def simple_rag(ServeChatModel, qdrant_retriever):
     prompt = ChatPromptTemplate.from_messages([
         ('system', sys_prompt),
         ('system', "今天是{date},星期{week}."),
@@ -23,31 +23,28 @@ def simple_rag(qdrant_retriever):
         ('system', '上下文：{context}'),
         ('system', '用户问题如下：'),
         ('user', '{question}')
-
     ])
 
     def log(p):
         logger.debug(p)
         return p
 
-    def reserve(msg):
-        for m in msg.messages:
-            m.content = m.content.replace(r"\n", " ").replace(r'\t', " ").replace('\\', '')
-        return msg
+    def tmp_get_config():
+        return {"configurable": {"search_kwargs_qdrant": {"k": 3}}}
 
     from datetime import datetime
-    basic_rag = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
-                  "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
-                 | {"context": qdrant_retriever,
-                    "question": RunnablePassthrough(lambda x: x[0]),
-                    "chat_history": RunnablePassthrough(lambda x: x[1])}
-                 | prompt
-                 | RunnableLambda(reserve)
-                 | RunnableLambda(log))
-    return basic_rag
+    basic_chain = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
+                    "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
+                   | {"context": RunnableLambda(lambda x: qdrant_retriever.invoke(x, config=tmp_get_config())),
+                      "question": RunnablePassthrough(lambda x: x[0]),
+                      "chat_history": RunnablePassthrough(lambda x: x[1])}
+                   | prompt
+                   | RunnableLambda(log))
+    return basic_chain
+
 
 @chains.register
-def simple_chain(ServeChatModel, simple_rag):
+def simple_chain(simple_rag, ServeChatModel):
     basic_chain = (simple_rag
                    | ServeChatModel)
     return basic_chain

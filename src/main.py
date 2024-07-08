@@ -48,6 +48,42 @@ def rag(message, history):
     return str(prompt)
 
 
+def simple_rag(message, history):
+    chain: Runnable = default_context['simple_rag']
+    partial_message = ""
+    # 历史对话总是从用户开始，然后机器人
+    history_msg = []
+    for i, (user_message, bot_message) in enumerate(history):
+        if isinstance(user_message, list):
+            user_message = "".join(user_message)
+        history_msg.append(('user', user_message))
+        if isinstance(bot_message, list):
+            bot_message = "".join(bot_message)
+        history_msg.append(('ai', bot_message))
+    history_msg = str(history_msg)
+    logs.get_logger('chat').debug(history_msg)
+    for chunk in chain.stream([message, history_msg]):
+        partial_message = partial_message + chunk.content
+        yield partial_message
+
+
+def simple_rag(message, history):
+    chain: Runnable = default_context['simple_rag']
+    partial_message = ""
+    # 历史对话总是从用户开始，然后机器人
+    history_msg = []
+    for i, (user_message, bot_message) in enumerate(history):
+        if isinstance(user_message, list):
+            user_message = "".join(user_message)
+        history_msg.append(('user', user_message))
+        if isinstance(bot_message, list):
+            bot_message = "".join(bot_message)
+        history_msg.append(('ai', bot_message))
+    history_msg = str(history_msg)
+    logs.get_logger('chat').debug(history_msg)
+    prompt = chain.invoke([message, history_msg])
+    return str(prompt)
+
 agent = FayAgentCore()
 
 
@@ -59,9 +95,9 @@ def simple_agent(message, history):
 import gradio as gr
 
 if __name__ == "__main__":
-    chain_interface = gr.ChatInterface(chain, title="Chain")
-    rag_interface = gr.ChatInterface(rag, title="Rag")
-    agent_interface = gr.ChatInterface(simple_agent, title="Agent")
+    chain_interface = gr.ChatInterface(simple_chain, title="Simple Chain")
+    rag_interface = gr.ChatInterface(simple_rag, title="Simple Rag")
+    agent_interface = gr.ChatInterface(simple_agent, title="Simple Agent")
     from fastapi import FastAPI
 
     app = FastAPI()
