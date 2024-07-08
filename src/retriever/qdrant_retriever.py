@@ -1,13 +1,19 @@
-import retriever
+from langchain_core.documents import Document
+from langchain_core.runnables import ConfigurableField, RunnableSerializable
 
-from src.embedding import modelscope_embedding
+import retriever
+from embedding import modelscope_embedding
 from retriever.vector_store import qdrant
-from langchain_core.vectorstores import VectorStoreRetriever
 
 _ = modelscope_embedding
 _ = qdrant
 
 
 @retriever.register
-def qdrant_retriever(QdrantVectorStore) -> VectorStoreRetriever:
-    return QdrantVectorStore.as_retriever(search_type="similarity", search_kwargs={"k": 1})
+def qdrant_retriever(QdrantVectorStore: qdrant.QdrantVectorStore) -> RunnableSerializable[str, list[Document]]:
+    return (QdrantVectorStore
+            .as_retriever(search_type="similarity", search_kwargs={"k": 1})
+            .configurable_fields(search_kwargs=ConfigurableField(id="search_kwargs_qdrant",
+                                                                 name="Search Kwargs",
+                                                                 description="The search kwargs to use"
+                                                                 )))

@@ -72,7 +72,7 @@ class Register(Context[T]):
         if not name:
             raise ValueError(f"{name} is empty")
         if name in self:
-            raise ValueError(f"{name} not registered")
+            raise ValueError(f"{name} has registered")
 
     def register(self, cls, contexts: Dict = None):
         name = cls.__name__
