@@ -29,6 +29,11 @@ def simple_rag(qdrant_retriever):
         logger.debug(p)
         return p
 
+    def reserve(msg):
+        for m in msg.messages:
+            m.content = m.content.replace(r"\n", " ").replace(r'\t', " ").replace('\\', '')
+        return msg
+
     from datetime import datetime
     basic_rag = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
                   "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
@@ -36,6 +41,7 @@ def simple_rag(qdrant_retriever):
                     "question": RunnablePassthrough(lambda x: x[0]),
                     "chat_history": RunnablePassthrough(lambda x: x[1])}
                  | prompt
+                 | RunnableLambda(reserve)
                  | RunnableLambda(log))
     return basic_rag
 
