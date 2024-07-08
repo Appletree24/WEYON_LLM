@@ -50,12 +50,12 @@ def time(func):
 
     @functools.wraps(func)
     def function_time(*args, **kwargs):
-        import time as tm
-        start_time = tm.time()
+        import datetime as dt
+        start_time = dt.datetime.now()
         result = func(*args, **kwargs)
-        end_time = tm.time()
+        end_time = dt.datetime.now()
         execution_time = end_time - start_time
-        logger.info(f"Function {func.__name__} executed in {execution_time}")
+        logger.info(f"Function {func.__name__} executed in {execution_time.microseconds} ms")
         return result
 
     return function_time
