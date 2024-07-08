@@ -16,7 +16,7 @@ def chain(message, history):
     partial_message = ""
     # 历史对话总是从用户开始，然后机器人
     history_msg = []
-    for i, (user_message, bot_message) in enumerate(history):
+    for i, (user_message, bot_message) in enumerate(history[:-4]):
         if isinstance(user_message, list):
             user_message = "".join(user_message)
         history_msg.append(('user', user_message))
@@ -35,7 +35,7 @@ def rag(message, history):
     partial_message = ""
     # 历史对话总是从用户开始，然后机器人
     history_msg = []
-    for i, (user_message, bot_message) in enumerate(history):
+    for i, (user_message, bot_message) in enumerate(history[:-5]):
         if isinstance(user_message, list):
             user_message = "".join(user_message)
         history_msg.append(('user', user_message))
