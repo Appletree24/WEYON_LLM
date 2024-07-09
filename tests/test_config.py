@@ -12,4 +12,4 @@ class TestConfigurationContext(TestCase):
         context = ConfigurationContext('../resources/application.yaml')
 
         self.assertEqual(context['serve_chat_model_config']['openai_api_base']
-                         , "http://192.168.100.111:9997/v1")
+                         , "http://192.168.100.111:8000/v1")

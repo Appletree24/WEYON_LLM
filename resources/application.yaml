@@ -2,15 +2,15 @@
 # 可参考 llm/chat_openai.py 中ServeChatModel的init函数。
 
 serve_chat_model_config:
-  openai_api_base: "http://192.168.100.111:9997/v1"
-  model: "qwen2"
-  max_tokens: 9999999999
+  openai_api_base: "http://192.168.100.111:8000/v1"
+  model: "qwen2-pro"
+  max_tokens: 40000
   openai_api_key: "dummy"
 
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
-  collection_name: "test_collection"
+  collection_name: "kb_2024_07_03"
 modelscope_embeddings_model_id: iic/nlp_gte_sentence-embedding_chinese-base
 
 profiles:
