@@ -152,4 +152,4 @@ qa_chain = RetrievalQA.from_chain_type(
     retriever=compression_retriever_reordered,
 )
 
-print(qa_chain.invoke({"query": "张子辉2024年9月-2025年1月会在什么地方？"}))
+print(qa_chain.invoke({"query": "xxx2024年9月-2025年1月会在什么地方？"}))
