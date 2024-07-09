@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.embedding import modelscope_embedding
+from embedding import modelscope_embedding
 from retriever.vector_store import qdrant
 from basic import default_context
 from qdrant_client import QdrantClient

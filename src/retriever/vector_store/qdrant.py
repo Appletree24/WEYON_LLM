@@ -3,7 +3,7 @@ from typing import Dict
 from langchain_qdrant import Qdrant
 from retriever import vector_store
 
-from src.embedding import modelscope_embedding
+from embedding import modelscope_embedding
 
 _ = modelscope_embedding
 

@@ -1,31 +1,103 @@
 #!//home/kemove/miniconda3/envs/rag_zzh/lib/ python3.11.0
 # -*- coding:utf-8 -*-
-# @FileName  :Langchain_version.py
-# @Time      :2024/07/03 15:42:44
+# @FileName  :Langchain_SQL_Agents.py
+# @Time      :2024/07/05 14:30:15
 # @Author    :Appletree24
 # @Email     :1246908638zxc@gmail.com
 # @Software  :Vscode
-# @Description: Langchain版本的Text2SQL,没有Agent形式，效果好于llamaindex
-# @Version   :1.0
+# @Description: 利用Langchain框架编写的Agentic RAG For nl2SQL
+# @Version   :2.0
 # 请不要用GPT生成代码中的注释，谢谢。
 
-from operator import itemgetter
-from langchain_community.utilities import SQLDatabase
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain.chains.sql_database.query import create_sql_query_chain
-from langchain_openai import ChatOpenAI
-from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
+# 飞书内部文档链接，有对此文件代码的解释：https://cqqsgt4nbl1.feishu.cn/wiki/Hr3ewZlTOikzqxkFZWHcPflEnxb?from=from_copylink
+
+from urllib.parse import quote_plus
 import os
-os.environ["OPENAI_API_BASE"] = "http://192.168.100.111:9997/v1"
+import re
+import ast
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain.agents.agent_toolkits import create_retriever_tool
+from langgraph.prebuilt import create_react_agent
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI
+from langchain_community.utilities import SQLDatabase
+from langchain_core.messages import SystemMessage
+from langchain_core.messages import HumanMessage
+from langchain_core.prompts import PromptTemplate
+from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
+from langchain.memory.buffer import ConversationBufferMemory
+from langchain_community.document_loaders.csv_loader import CSVLoader
+import logging
+
+# 设置日志记录格式和级别
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# 设置环境变量，用于配置OpenAI API和CUDA设备
+os.environ["OPENAI_API_BASE"] = "http://192.168.100.111:8000/v1"
 os.environ["OPENAI_API_KEY"] = "dummy"
+# 这是之前0卡在跑模型，所以改成1卡了，可以按照需要自行注释与否
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-table_info = """
 
-        Database:
-        ------
-        Build a predicate sentence:
+# 初始化嵌入模型
+embeeding_name = "thenlper/gte-large"
+embeedings = HuggingFaceEmbeddings(model_name=embeeding_name)
+
+# 加载CSV文件
+loader = CSVLoader(file_path='WEYON_LLM/RAG/Text2SQL/Example_SQL.csv')
+sample_sql = loader.load()
+
+# 定义符合中文语系的文本分割器
+chinese_text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=64, separators=[
+    "\n\n",
+    "\n",
+    " ",
+    ".",
+    ",",
+    "\u200B",  # 零宽度空格
+    "\uff0c",  # 全角逗号
+    "\u3001",  # 顿号
+    "\uff0e",  # 全角句号
+    "\u3002",  # 句号
+    "",
+])
+
+# 分割样本SQL文档
+sql_example_chunks = chinese_text_splitter.split_documents(sample_sql)
+
+
+# 配置数据库连接
+db_user = "xxxx"
+db_password = "xxxx"
+db_host = "xxxxx"
+db_name = "xxxx"
+db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
+
+db = SQLDatabase.from_uri(db_uri)
+
+# 定义中文系统消息模板
+# ATTENTION LIMIT 5 定义在System prompt中，可以修改为自己要的参数
+chinese_system_ = """
+你是一个与 SQL 数据库交互的代理。
+给定一个输入问题，创建一个语法正确的 MySQL 查询来运行，然后查看查询结果并返回答案。
+除非用户指定了希望获得的示例的具体数量，否则始终将查询结果限制为最多 5 个。
+您可以根据相关列对结果进行排序，以返回数据库中最相关、最准确的示例。
+切勿查询特定表中的所有列，只查询问题中的相关列。
+您可以使用与数据库交互的工具。
+注意：如果用户使用了专有名词的缩写，你可以按照自己的理解将缩写补全为全称，并应用在生成的SQL语句以及后续的查询中！
+例如长理是长沙理工大学，湘大是湘潭大学，西农是西北农林科技大学,南林是南京林业大学,等等,按照你的预训练数据以及我给出的规则，之后可以自行补全。
+只能使用指定的工具。只能使用工具返回的信息来构建您的最终答案。
+执行查询前必须仔细检查。如果在执行查询时出现错误，请重写查询并再试一次。
+
+切勿对数据库执行任何 DML 语句（INSERT、UPDATE、DELETE、DROP 等）。
+
+您可以访问以下表：{table_names}
+此表的DDL语句为:
         ```sql
             create table dw_s_employment_company
 (
@@ -165,89 +237,90 @@ table_info = """
     zrs        int                  null comment '总人数',
     primary key (__adb_auto_id__)
 
+""".format(table_names=db.get_usable_table_names())
 
-    请注意!下面有序列表中提到的信息极为关键！请参考列表中的内容编写SQL：
-    1.表中xl字段中的内容仅会有"本科毕业生"、"本科生毕业"、"专科生毕业"、"专科毕业生"这四种类型!
-    2.长理是长沙理工大学的简称!当用户想查询长理相关内容时，其实是查询长沙理工大学的相关内容！
-      例如：当用户提问请你查询表中长理的学生人数,SQL语句应为：
-      ```SQL
-      SELECT COUNT(*) AS '长理学生人数'
-      FROM dw_s_employment
-      WHERE xxmc = '长沙理工大学';
-      ```SQL
-)
-"""
+# 增加上下文对话历史
+chinese_system = chinese_system_ + "上下文对话历史为{chat_history}"
 
+# 定义SQL问题提示模板
+CUSTOM_SQL_QUESTION_PROMPT = PromptTemplate.from_template(chinese_system)
 
-template = '''
-Given an input question, first create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
-Use the following format:
+# 初始化对话历史缓冲区
+chat_memory = ConversationBufferMemory(
+    memory_key="chat_history", return_messages=True)
 
-Question: "Question here"
-SQLQuery: "SQL Query to run"
-SQLResult: "Result of the SQLQuery"
-Answer: "Final answer here"
+# 初始化LLM模型, qwen2-pro目前在服务器上的max_model_len是1w tokens
+llm = ChatOpenAI(model="qwen2-pro",
+                 max_tokens=5000, max_retries=2)
 
-Only use the following tables:
+# 创建SQL数据库工具包
+toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 
-{table_info}.
-
-Question: {input}
+# 获取工具
+tools = toolkit.get_tools()
 
 
-top_k = {top_k}
+# 初始化Chroma数据库
+db_chroma = Chroma.from_documents(
+    sql_example_chunks, embeedings, persist_directory="example_sql")
 
-'''
-prompt = PromptTemplate.from_template(template)
+# 初始化数据库检索器，返回值数据类型是List，大小为search_kwargs中的k值
+db_retriever = db_chroma.as_retriever(search_kwargs={"k": 3})
+
+# 生成增强RAG提示
+RAG_ENHANCE_PROMPT = db_retriever.invoke(
+    "我想查询来自国科大的学生就业数据,请编写SQL语句,使用模糊查询限定条件,不要使用LIMIT限制")
+
+# 定义系统消息
+system_message = SystemMessage(content=chinese_system+str(RAG_ENHANCE_PROMPT))
+
+# 创建React代理
+agent = create_react_agent(
+    llm, tools, messages_modifier=system_message)
+
+# 执行代理查询
+for s in agent.stream(
+    {"messages": [HumanMessage(
+        content="我想查询来自国科大的学生就业数据,请编写SQL语句,使用模糊查询限定条件,不要使用LIMIT限制")]}
+):
+    print(s)
+    print("------------------------------------------------------------------------------------")
+
+# 定义SQL前缀模板,待测试是否会比中文prompt效果更好
+# SQL_PREFIX = """You are an agent designed to interact with a SQL database.
+# Given an input question, create a syntactically correct SQLite query to run, then look at the results of the query and return the answer.
+# Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most 5 results.
+# You can order the results by a relevant column to return the most interesting examples in the database.
+# Never query for all the columns from a specific table, only ask for the relevant columns given the question.
+# You have access to tools for interacting with the database.
+# Only use the below tools. Only use the information returned by the below tools to construct your final answer.
+# You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
+#
+# DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+#
+# To start you should ALWAYS look at the tables in the database to see what you can query.
+# Do NOT skip this step.
+# Then you should query the schema of the most relevant tables."""
 
 
-answer_prompt = PromptTemplate.from_template(
-    """Given the following user question, corresponding SQL query, and SQL result, answer the user question.
-    Question: {question}
-    SQL Query: {query}
-    SQL Result: {result}
-    Answer: """
-)
+# 定义PromptPrinter类，用于打印输入给LLM的Prompt
+# class PromptPrinter(BaseCallbackHandler):
+#    def on_llm_start(self, serialized, prompts, **kwargs):
+#        print(f"输入给LLM的Prompt为:{prompts[0]}")
 
-db_user = "root"
-db_password = "AI20240520"
-db_host = "192.168.100.111"
-db_name = "ai_use"
+# 定义PromptCapturingHandler类，用于捕获LLM的Prompt
+# class PromptCapturingHandler(BaseCallbackHandler):
+#    def __init__(self):
+#        self.llm_prompts = []
+#
+#    def on_llm_end(self, serialized, prompts, **kwargs):
+#        self.llm_prompts.append(prompts)
 
-# 研究院给的MySQL密码比较抽象，不符合MySQL规范，以后也避免使用特殊字符
-# 如果要用阿里云，注释掉下述代码即可
-# from urllib.parse import quote_plus
-# db_user = "ai_user"
-# db_password = quote_plus("Ai@use_15379")
-# db_host = "am-wz9el267w54i2r7ip131930o.ads.aliyuncs.com"
-# db_name = "ai_use"
-
-db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
-db = SQLDatabase.from_uri(db_uri)
-
-llm = ChatOpenAI(model="qwen2", max_tokens=5000, max_retries=2)
-
-write_query = create_sql_query_chain(llm, db, prompt=prompt)
-
-print("生成的SQL为：", write_query.invoke(
-    {"question": "查询云就业大学就业数据", "table_info": table_info}))
-
-execute_query = QuerySQLDataBaseTool(db=db)
-
-chain = (
-    RunnablePassthrough.assign(query=write_query).assign(
-        result=itemgetter("query") | execute_query
-    )
-    | answer_prompt
-    | llm
-    | StrOutputParser()
-)
-
-response = chain.invoke({"question": "查询20条云就业大学就业数据"})
-
-print(response)
-
-# chain = write_query | execute_query
-# response = chain.invoke(
-#    {"question": "请你查询表中所有专科生毕业或专科毕业生的人数"})
-# print(response)
+# 定义查询结果格式化函数
+#
+#
+# def query_as_list(db, query):
+#    res = db.run(query)
+#    res = [el for sub in ast.literal_eval(res) for el in sub if el]
+#    res = [re.sub(r"\b\d+\b", "", string).strip() for string in res]
+#    return list(set(res))
