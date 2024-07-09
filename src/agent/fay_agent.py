@@ -89,7 +89,7 @@ class FayAgentCore():
 
         from urllib.parse import quote_plus
         # 阿里云仓库
-        db_user = "xx"
+        db_user = "xxx"
         db_password = quote_plus("xxxx")
         db_host = "xxx"
         db_name = "xxx"
