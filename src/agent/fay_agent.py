@@ -11,12 +11,9 @@ from agent.tools.QueryTime import QueryTime
 from agent.tools.PythonExecutor import PythonExecutor
 from agent.tools.WebPageRetriever import WebPageRetriever
 from agent.tools.WebPageScraper import WebPageScraper
-from agent.tools.ListSql import ListSql
 from agent.data.province import ProvinceData
 from agent.data.city import CityData
-from agent.toolkit.tools.QueryHeader import QueryHeader
 
-from langchain import hub
 from langchain.agents import AgentExecutor, create_react_agent, Tool
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
@@ -24,13 +21,6 @@ from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate, FewShotPromptTemplate
 from langchain_community.utilities import SQLDatabase
 from langchain_community.callbacks import get_openai_callback
-from langchain_community.tools.sql_database.tool import (
-    InfoSQLDatabaseTool,
-    ListSQLDatabaseTool,
-    QuerySQLCheckerTool,
-    QuerySQLDataBaseTool,
-)
-
 import utils.config_util as utils
 from agent.toolkit.toolkit import MySQLDatabaseToolkit
 
@@ -58,7 +48,7 @@ class FayAgentCore():
         db_name = "ai_use"
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
-        db._sample_rows_in_table_info = 0 # 将底部的样例输出修改为0
+        db._sample_rows_in_table_info = 1 # 将底部的样例输出修改为0
         self.db = db
 
         # 创建agent chain
@@ -89,19 +79,13 @@ class FayAgentCore():
                     'agent_scratchpad',
                     'chat_history',
                     'input',
-                    'tool_names',
-                    'tools'
+                    'tools',
+                    'tool_names'
                 ],
-                metadata={
-                    'lc_hub_owner': 'hwchase17',
-                    'lc_hub_repo': 'react-chat',
-                    'lc_hub_commit_hash': '3ecd5f710db438a9cf3773c57d6ac8951eefd2cd9a9b2a0026a65a0893b86a6e'
-                },
                 template=template,
             )
 
             agent = create_react_agent(self.llm, self.tools, prompt)
-
             # 通过传入agent和tools来创建一个agent executor
             self.agent = AgentExecutor(agent=agent, tools=self.tools, verbose=True, handle_parsing_errors=True)
             self.total_tokens = 0
