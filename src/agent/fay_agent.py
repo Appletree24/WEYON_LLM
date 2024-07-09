@@ -89,10 +89,10 @@ class FayAgentCore():
 
         from urllib.parse import quote_plus
         # 阿里云仓库
-        db_user = "ai_user"
-        db_password = quote_plus("Ai@use_15379")
-        db_host = "am-wz9el267w54i2r7ip131930o.ads.aliyuncs.com"
-        db_name = "ai_use"
+        db_user = "xx"
+        db_password = quote_plus("xxxx")
+        db_host = "xxx"
+        db_name = "xxx"
 
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
