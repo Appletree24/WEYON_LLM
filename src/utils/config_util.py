@@ -26,7 +26,10 @@ key_ms_tts_key = None
 key_ms_tts_region = None
 tts_module = None
 proxy_config = None
+max_history_num = None
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # 读取配置文件
 
@@ -51,6 +54,7 @@ def load_config():
     global local_asr_port
     # global proxy_config
     global gpt_model_engine
+    global max_history_num
 
     system_config = ConfigParser()
     # print(os.path.join(BASE_DIR, 'mySystem.conf'))
@@ -74,6 +78,7 @@ def load_config():
     # proxy_config = system_config.get('key', 'proxy_config')
     gpt_model_engine = system_config.get('key', 'gpt_model_engine')
     tavily_api_key = system_config.get('key', 'tavily_api_key')
+    max_history_num = system_config.get('key', 'max_history_num')
     # print(os.path.join(BASE_DIR, 'config.json'))
     config = json.load(codecs.open(os.path.join(
         BASE_DIR, 'config.json'), encoding='utf-8'))
@@ -84,7 +89,7 @@ def save_config(config_data):
     config = config_data
     file = codecs.open('config.json', mode='w', encoding='utf-8')
     file.write(json.dumps(config, sort_keys=True,
-               indent=4, separators=(',', ': ')))
+                          indent=4, separators=(',', ': ')))
     file.close()
     # for line in json.dumps(config, sort_keys=True, indent=4, separators=(',', ': ')).split("\n"):
     #     print(line)

@@ -5,6 +5,8 @@
 import os
 import math
 
+from langchain_core.messages import HumanMessage, AIMessage
+
 from agent.tools.MyTimer import MyTimer
 from agent.tools.Weather import Weather
 from agent.tools.QueryTime import QueryTime
@@ -13,6 +15,7 @@ from agent.tools.WebPageRetriever import WebPageRetriever
 from agent.tools.WebPageScraper import WebPageScraper
 from agent.data.province import ProvinceData
 from agent.data.city import CityData
+from agent.core import content_db
 
 from langchain.agents import AgentExecutor, create_react_agent, Tool
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -25,7 +28,6 @@ import utils.config_util as utils
 from agent.toolkit.toolkit import MySQLDatabaseToolkit
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 
 class FayAgentCore():
@@ -41,14 +43,39 @@ class FayAgentCore():
         utils.load_config()
         # 内存保存聊天历史
         self.chat_history = []
+        self.chat_history = []
+        if int(utils.max_history_num) > 0:
+            old_history = content_db.new_instance().get_list('all', 'desc', int(utils.max_history_num))
+            i = len(old_history) - 1
+            if len(old_history) > 1:
+                while i >= 0:
+                    if old_history[i][0] == "member":
+                        self.chat_history.append(HumanMessage(content=old_history[i][2]))
+                    else:
+                        self.chat_history.append(AIMessage(content=old_history[i][2]))
+                    i -= 1
+            else:
+                self.chat_history = []
 
+        """
+            请使用本地仓库，原因如下链接 https://cqqsgt4nbl1.feishu.cn/wiki/GtVwwSeXZijfZwkkgCSc7kuqnj6#IcZfdyh2Sol0x0xNivlcI5DAn5b
+        """
+        # AppleTree24 本地仓库
         db_user = "root"
         db_password = "AI20240520"
         db_host = "192.168.100.111"
         db_name = "ai_use"
+
+        # from urllib.parse import quote_plus
+        # # 阿里云仓库
+        # db_user = "ai_user"
+        # db_password = quote_plus("Ai@use_15379")
+        # db_host = "am-wz9el267w54i2r7ip131930o.ads.aliyuncs.com"
+        # db_name = "ai_use"
+
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
-        db._sample_rows_in_table_info = 1 # 将底部的样例输出修改为0
+        db._sample_rows_in_table_info = 1  # 将底部的样例输出修改为0
         self.db = db
 
         # 创建agent chain
@@ -92,36 +119,35 @@ class FayAgentCore():
             self.total_cost = 0
 
     # 记忆prompt
-    def format_history_str(self, history_list):
-        result = ''
-        for history in history_list:
-            result = "Human: {input}\nAI: {output}\n".format(input=history['input'], output=history['output'])
-        return result
+    def set_history(self, result):
+        if (len(self.chat_history) >= int(utils.max_history_num)):
+            del self.chat_history[0]
+            del self.chat_history[0]
+        if result:
+            if isinstance(result, dict):
+                self.chat_history.append(HumanMessage(content=result['input']))
+                self.chat_history.append(AIMessage(content=result['output']))
 
     def run(self, input_text):
         result = ""
-        history = ""
-        history = self.format_history_str(self.chat_history)
+        re = ""
         try:
             input_text = input_text.replace('主人语音说了：', '').replace('主人文字说了：', '')
-            # input_text = self.province_data.replace_region(input_text)
-            input_text = self.city_data.replace_city(input_text)
+
             with get_openai_callback() as cb:
-                result = self.agent.invoke({"input": input_text, "chat_history": history})
-                re = result['output']
+                # result = self.agent.run(agent_prompt)
+                result = self.agent.invoke({"input": input_text, "chat_history": self.chat_history})
+                re = "执行完毕" if re is None or re == "N/A" else result['output']
                 self.total_tokens = self.total_tokens + cb.total_tokens
-                self.total_cost = self.total_cost + cb.total_cost
 
         except Exception as e:
             print(e)
 
-        re = "执行完毕" if re is None or re == "N/A" else re
         chat_text = re
 
-        # 保存到记忆流和聊天对话且控制记忆的条数
-        self.chat_history.append(result)
-        if len(self.chat_history) > 5:
-            self.chat_history.pop(0)
+        # 保存聊天对话
+        if int(utils.max_history_num) > 0:
+            self.set_history(result)
 
         return False, chat_text
 
