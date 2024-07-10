@@ -81,7 +81,9 @@ db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
 db = SQLDatabase.from_uri(db_uri)
 
 # 定义中文系统消息模板
+
 # ATTENTION LIMIT 5 定义在System prompt中，可以修改为自己要的参数
+
 chinese_system_ = """
 你是一个与 SQL 数据库交互的代理。
 给定一个输入问题，创建一个语法正确的 MySQL 查询来运行，然后查看查询结果并返回答案。
