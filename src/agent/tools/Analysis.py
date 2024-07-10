@@ -1,12 +1,10 @@
-import pymysql
-from pymysql.constants import CLIENT
+# name: fay_agent.py
+# description: Agentic tool 完善模型回答
+# author: acxgdxy,xiongxiao31
+# time: 2024/07/03
+# 请不要用GPT生成代码中的注释，谢谢。
 from langchain.tools import BaseTool
-
-from agent.data.province1 import Province1
 from typing import Any
-import json
-
-
 class Analysis(BaseTool):
     name = "Analysis"
     description = "用于分析数据库中查询出来的数据"
