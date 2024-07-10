@@ -12,15 +12,15 @@ import os
 
 from langchain_core.messages import HumanMessage, AIMessage
 
-from agent.tools.MyTimer import MyTimer
-from agent.tools.Weather import Weather
-from agent.tools.QueryTime import QueryTime
-from agent.tools.PythonExecutor import PythonExecutor
-from agent.tools.WebPageRetriever import WebPageRetriever
-from agent.tools.WebPageScraper import WebPageScraper
-from agent.data.province import ProvinceData
-from agent.data.city import CityData
-from agent.core import content_db
+from tools.MyTimer import MyTimer
+from tools.Weather import Weather
+from tools.QueryTime import QueryTime
+from tools.PythonExecutor import PythonExecutor
+from tools.WebPageRetriever import WebPageRetriever
+from tools.WebPageScraper import WebPageScraper
+from data.province import ProvinceData
+from data.city import CityData
+from core import content_db
 
 from langchain.agents import AgentExecutor, create_react_agent, Tool
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -32,7 +32,7 @@ from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate, FewShotPromptTemplate
 from langchain_community.utilities import SQLDatabase
 from langchain_community.callbacks import get_openai_callback
-import utils.config_util as utils
+import src.utils.config_util as utils
 
 from qdrant_client import QdrantClient
 from langchain_qdrant import Qdrant
@@ -136,12 +136,20 @@ class FayAgentCore():
             agent = create_react_agent(self.llm, self.tools, prompt)
             # 通过传入agent和tools来创建一个agent executor
             self.agent = AgentExecutor(
-                agent=agent, tools=self.tools, verbose=True, handle_parsing_errors=True)
+                agent=agent,
+                tools=self.tools,
+                verbose=True,
+                handle_parsing_errors=True,
+                max_iterations=10,
+                max_execution_time=60,
+                trim_intermediate_steps=3
+            )
             self.total_tokens = 0
             self.total_cost = 0
 
     # 记忆prompt
     def set_history(self, result):
+
         if (len(self.chat_history) >= int(utils.max_history_num)):
             del self.chat_history[0]
             del self.chat_history[0]
