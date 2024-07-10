@@ -1,10 +1,12 @@
-# name: fay_agent.py
+# name: Analysis.py
 # description: Agentic tool 完善模型回答
-# author: acxgdxy,xiongxiao31
+# author: acxgdxy,woshixiong
 # time: 2024/07/03
 # 请不要用GPT生成代码中的注释，谢谢。
 from langchain.tools import BaseTool
 from typing import Any
+
+
 class Analysis(BaseTool):
     name = "Analysis"
     description = "用于分析数据库中查询出来的数据"

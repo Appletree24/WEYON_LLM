@@ -10,11 +10,11 @@
 
 import os
 
-from tools.Analysis import Analysis
+from agent.tools.Analysis import Analysis
 
-from data.province import ProvinceData
-from data.city import CityData
-from core import content_db
+from agent.data.province import ProvinceData
+from agent.data.city import CityData
+from agent.core import content_db
 
 from langchain.agents import AgentExecutor, create_react_agent, Tool
 
