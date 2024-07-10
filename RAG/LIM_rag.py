@@ -34,8 +34,6 @@ from langchain.retrievers import MergerRetriever
 from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
 from langchain.chains.retrieval_qa.base import RetrievalQA
-from re import search
-import os
 
 llm = ChatOpenAI(model="qwen2-pro", max_tokens=5000, max_retries=2, api_key="dummy",
                  base_url="http://192.168.100.111:8000/v1", streaming=True, verbose=True)
