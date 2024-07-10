@@ -78,17 +78,19 @@ db_host = "xxxxx"
 db_name = "xxxx"
 db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
 
-# 初始化数据库对象
 db = SQLDatabase.from_uri(db_uri)
 
 # 定义中文系统消息模板
+# ATTENTION LIMIT 5 定义在System prompt中，可以修改为自己要的参数
 chinese_system_ = """
 你是一个与 SQL 数据库交互的代理。
 给定一个输入问题，创建一个语法正确的 MySQL 查询来运行，然后查看查询结果并返回答案。
 除非用户指定了希望获得的示例的具体数量，否则始终将查询结果限制为最多 5 个。
-您可以根据相关列对结果进行排序，以返回数据库中最有趣的示例。
+您可以根据相关列对结果进行排序，以返回数据库中最相关、最准确的示例。
 切勿查询特定表中的所有列，只查询问题中的相关列。
 您可以使用与数据库交互的工具。
+注意：如果用户使用了专有名词的缩写，你可以按照自己的理解将缩写补全为全称，并应用在生成的SQL语句以及后续的查询中！
+例如长理是长沙理工大学，湘大是湘潭大学，西农是西北农林科技大学,南林是南京林业大学,等等,按照你的预训练数据以及我给出的规则，之后可以自行补全。
 只能使用指定的工具。只能使用工具返回的信息来构建您的最终答案。
 执行查询前必须仔细检查。如果在执行查询时出现错误，请重写查询并再试一次。
 
@@ -267,7 +269,7 @@ db_retriever = db_chroma.as_retriever(search_kwargs={"k": 3})
 
 # 生成增强RAG提示
 RAG_ENHANCE_PROMPT = db_retriever.invoke(
-    "我想查询表中来自长沙理工的同学的信息,请编写SQL语句,使用模糊查询限定条件,不要使用LIMIT限制")
+    "我想查询来自国科大的学生就业数据,请编写SQL语句,使用模糊查询限定条件,不要使用LIMIT限制")
 
 # 定义系统消息
 system_message = SystemMessage(content=chinese_system+str(RAG_ENHANCE_PROMPT))
@@ -279,10 +281,10 @@ agent = create_react_agent(
 # 执行代理查询
 for s in agent.stream(
     {"messages": [HumanMessage(
-        content="我想查询表中来自长沙理工的同学的信息,请编写SQL语句,使用模糊查询限定条件,不要使用LIMIT限制")]}
+        content="我想查询来自国科大的学生就业数据,请编写SQL语句,使用模糊查询限定条件,不要使用LIMIT限制")]}
 ):
     print(s)
-    print("-----------------------------------------------")
+    print("------------------------------------------------------------------------------------")
 
 # 定义SQL前缀模板,待测试是否会比中文prompt效果更好
 # SQL_PREFIX = """You are an agent designed to interact with a SQL database.
