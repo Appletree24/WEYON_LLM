@@ -10,30 +10,29 @@
 
 import os
 
-from langchain_core.messages import HumanMessage, AIMessage
+from tools.Analysis import Analysis
 
-from tools.MyTimer import MyTimer
-from tools.Weather import Weather
-from tools.QueryTime import QueryTime
-from tools.PythonExecutor import PythonExecutor
-from tools.WebPageRetriever import WebPageRetriever
-from tools.WebPageScraper import WebPageScraper
 from data.province import ProvinceData
 from data.city import CityData
 from core import content_db
 
 from langchain.agents import AgentExecutor, create_react_agent, Tool
+
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_qdrant import Qdrant
-from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_openai import ChatOpenAI
-from langchain import PromptTemplate, FewShotPromptTemplate
 from langchain_community.utilities import SQLDatabase
 from langchain_community.callbacks import get_openai_callback
-import src.utils.config_util as utils
 
+from langchain_qdrant import Qdrant
+
+from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_core.messages import HumanMessage, AIMessage
+
+from langchain_openai import ChatOpenAI
+from langchain import PromptTemplate, FewShotPromptTemplate
+
+import src.utils.config_util as utils
 from qdrant_client import QdrantClient
 from langchain_qdrant import Qdrant
 
@@ -100,23 +99,13 @@ class FayAgentCore():
         self.db = db
 
         # 创建agent chain
-        my_timer = MyTimer()
-        weather_tool = Weather()
-        query_time = QueryTime()
-        # query_timer_db_tool = QueryTimerDB()
-        # delete_timer_tool = DeleteTimer()
-        python_executor = PythonExecutor()
-        web_page_retriever = WebPageRetriever()
-        web_page_scraper = WebPageScraper()
-        # list_sql = ListSql()
-        # toolkit = MySQLDatabaseToolkit(db=db, llm=self.llm)
-        # tools = toolkit.get_tools()
-
+        analysis = Analysis(description="在将最终查询结果输出给模型之前，需要调用一次此工具")
         # 输入数据处理
         self.province_data = ProvinceData()
         self.city_data = CityData()
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.tools = toolkit.get_tools()
+        self.tools.append(analysis)
         if str(utils.tavily_api_key) != '':
             self.tools.append(TavilySearchResults(max_results=1))
 
@@ -165,7 +154,7 @@ class FayAgentCore():
             input_text = input_text.replace(
                 '主人语音说了：', '').replace('主人文字说了：', '')
             RAG_ENHANCE_PROMPT = str(retriever.invoke(input_text))
-            input_text = input_text+RAG_ENHANCE_PROMPT
+            input_text = input_text + RAG_ENHANCE_PROMPT
             with get_openai_callback() as cb:
                 # result = self.agent.run(agent_prompt)
                 result = self.agent.invoke(
