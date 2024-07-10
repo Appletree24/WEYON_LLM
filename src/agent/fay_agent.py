@@ -82,17 +82,17 @@ class FayAgentCore():
             请使用本地仓库，原因如下链接 https://cqqsgt4nbl1.feishu.cn/wiki/GtVwwSeXZijfZwkkgCSc7kuqnj6#IcZfdyh2Sol0x0xNivlcI5DAn5b
         """
         # AppleTree24 本地仓库
-        # db_user = "xxx"
-        # db_password = "xxx"
-        # db_host = "xxxx"
-        # db_name = "xxx"
+        db_user = "root"
+        db_password = "AI20240520"
+        db_host = "192.168.100.111"
+        db_name = "ai_use"
 
-        from urllib.parse import quote_plus
+        # from urllib.parse import quote_plus
         # 阿里云仓库
-        db_user = "xxx"
-        db_password = quote_plus("xxxx")
-        db_host = "xxx"
-        db_name = "xxx"
+        # db_user = "xxx"
+        # db_password = quote_plus("xxxx")
+        # db_host = "xxx"
+        # db_name = "xxx"
 
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
