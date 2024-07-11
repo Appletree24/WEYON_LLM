@@ -92,6 +92,10 @@ loaders = [
     Docx2txtLoader(
         file_path='/home/kemove/AI_Projects/zzh/WEYON_LLM/RAG/HNUST.docx'),
     Docx2txtLoader(file_path='WEYON_LLM/RAG/Mao.docx'),
+    Docx2txtLoader(
+        file_path='WEYON_LLM/RAG/HengYang.docx'),
+    Docx2txtLoader(file_path='WEYON_LLM/RAG/Chuanmei.docx'),
+    Docx2txtLoader(file_path='WEYON_LLM/RAG/Jingmao.docx'),
 ]
 
 docs = []
@@ -145,7 +149,7 @@ retriever = ParentDocumentRetriever(
 # add_documents里有一个uuid64的算法，每次都随机生成一批新的keys放在父亲文档中，如果父亲要用内存式的存储，就导致每次都生成了新的key，如果第二次不执行这个函数了，那当然就找不到结果，因为方法拿到的key和第一次不一样了
 
 # retriever.add_documents(docs)
-retriever.add_documents(docs, add_to_vectorstore=False)
+retriever.add_documents(docs)
 
 print(retriever.get_relevant_documents("湖南科技大学现在有教职工多少人?专任教师多少？有没有'四个一批'人才"))
 
