@@ -27,7 +27,7 @@ class ConfigurationContext(Context[T]):
 
     def parse(self, file_name: str):
         import yaml
-        with open(file_name, 'r') as f:
+        with open(file_name, 'r', encoding='UTF-8') as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         if config.get('profiles', None):
             if config['profiles'].get('includes', None):

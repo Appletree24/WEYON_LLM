@@ -32,6 +32,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate, FewShotPromptTemplate
 
+from embedding.modelscope_embedding import ModelScopeEmbeddings
 import src.utils.config_util as utils
 from qdrant_client import QdrantClient
 from langchain_qdrant import Qdrant
@@ -39,16 +40,18 @@ from langchain_qdrant import Qdrant
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class FayAgentCore():
+class FayAgentCore:
     qdrant_retriever: VectorStoreRetriever
 
     def __init__(self):
-        embedding_name = "BAAI/bge-m3"
-        embeddings = HuggingFaceEmbeddings(model_name=embedding_name)
+        embedding_name = "iic/nlp_gte_sentence-embedding_chinese-base"
+        embeddings = ModelScopeEmbeddings(modelscope_embeddings_model_id=embedding_name)
         qdrant_client = QdrantClient(location="192.168.100.111:6333")
         qdrant = Qdrant(
-            qdrant_client, collection_name="csv_sql_dim_1024", embeddings=embeddings)
+            qdrant_client, collection_name="csv_sql_dim_1024", embeddings=embeddings
+        )
         self.qdrant_retriever = qdrant.as_retriever(search_kwargs={"k": 3})
+
         utils.load_config()
         if str(utils.tavily_api_key) != '':
             os.environ["TAVILY_API_KEY"] = utils.tavily_api_key
@@ -99,7 +102,7 @@ class FayAgentCore():
         self.db = db
 
         # 创建agent chain
-        analysis = Analysis(description="在将最终查询结果输出给模型之前，需要调用一次此工具")
+        analysis = Analysis(name="Analysis", description="在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果")
         # 输入数据处理
         self.province_data = ProvinceData()
         self.city_data = CityData()
@@ -129,7 +132,7 @@ class FayAgentCore():
                 tools=self.tools,
                 verbose=True,
                 handle_parsing_errors=True,
-                max_iterations=10,
+                max_iterations=15,
                 max_execution_time=60,
                 trim_intermediate_steps=3
             )
@@ -150,6 +153,7 @@ class FayAgentCore():
     def run(self, input_text, retriever: VectorStoreRetriever):
         result = ""
         re = ""
+        chunks = []
         try:
             input_text = input_text.replace(
                 '主人语音说了：', '').replace('主人文字说了：', '')
@@ -159,8 +163,8 @@ class FayAgentCore():
                 # result = self.agent.run(agent_prompt)
                 result = self.agent.invoke(
                     {"input": input_text, "chat_history": self.chat_history})
+
                 re = "执行完毕" if re is None or re == "N/A" else result['output']
-                self.total_tokens = self.total_tokens + cb.total_tokens
 
         except Exception as e:
             print(e)
