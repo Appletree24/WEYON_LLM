@@ -27,6 +27,7 @@ from langchain_core.retrievers import BaseRetriever
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient, models
+from langchain.chains.retrieval_qa.base import RetrievalQA, BaseRetrievalQA
 
 from utils.Files_util import get_docxs_without_splitter
 
@@ -47,7 +48,7 @@ class RagMain():
         model_name="jinaai/jina-embeddings-v2-base-zh")
     parent_splitter = RecursiveCharacterTextSplitter(
         chunk_size=2000,
-        chunk_overlap=64,
+        chunk_overlap=200,
         separators=[
             "\n\n",
             "\n",
@@ -63,7 +64,7 @@ class RagMain():
         ])
     child_splitter = RecursiveCharacterTextSplitter(
         chunk_size=2000,
-        chunk_overlap=64,
+        chunk_overlap=200,
         separators=[
             "\n\n",
             "\n",
@@ -82,6 +83,8 @@ class RagMain():
     docs_store = InMemoryStore()
 
     retriever: BaseRetriever
+
+    qa_chain: BaseRetrievalQA
 
     def __init__(self, model_name: str, openai_api_key: str, openai_api_base: str,
                  max_tokens: int, verbose: bool, collection_name: str, files_path: str) -> None:
@@ -117,21 +120,26 @@ class RagMain():
         redundant_filter = EmbeddingsRedundantFilter(
             embeddings=self.embeddings_jina)
 
-        relevant_filter = EmbeddingsFilter(
-            embeddings=self.embeddings_jina, k=5)
+        # relevant_filter = EmbeddingsFilter(
+        #    embeddings=self.embeddings_jina, k=3)
 
         reorder = LongContextReorder()
 
-        compressor = LLMChainExtractor.from_llm(self.llm)
+        # compressor = LLMChainExtractor.from_llm(self.llm)
 
         pipeline = DocumentCompressorPipeline(
-            transformers=[compressor, redundant_filter,
-                          relevant_filter, reorder]
+            transformers=[redundant_filter, reorder]
         )
 
         self.retriever = ContextualCompressionRetriever(
             base_retriever=parent_retriever,
             base_compressor=pipeline
+        )
+
+        self.qa_chain = RetrievalQA.from_chain_type(
+            llm=self.llm,
+            chain_type="stuff",
+            retriever=self.retriever,
         )
 
         print("Rag初始化完成")
