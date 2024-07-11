@@ -129,13 +129,6 @@ qdrant_child = Qdrant(
     embeddings=embeddings_bge
 )
 
-# retriever = ParentDocumentRetriever(
-#    parent_splitter=parent_splitter,
-#    child_splitter=child_spillter,
-#    vectorstore=qdrant_child,
-#    docstore=parent_store
-# )
-
 retriever = ParentDocumentRetriever(
     parent_splitter=parent_splitter,
     child_splitter=child_spillter,
@@ -148,14 +141,11 @@ retriever = ParentDocumentRetriever(
 #    exact=True
 # )
 
-# FATAL 来解释一下add_documents这个函数
-# 首先如果不执行这个函数，那么从ParentDocumentRetriever之后的任何操作都是无效的，因为retriver已经为空了
-# 但是如果执行这个函数，又带了新的问题，如本文件代码之前所述，Qdrant反复往一个Collection里添加Point，不会查重内容，会反复添加，这样绝对不行
-# 但通过查看add_documents源码可以发现，只有一个bool类型的参数来控制是否往内存中添加数据
-# 并没有参数控制是否再次往向量数据库中添加数据
-# https://api.python.langchain.com/en/latest/retrievers/langchain.retrievers.parent_document_retriever.ParentDocumentRetriever.html#langchain.retrievers.parent_document_retriever.ParentDocumentRetriever
+# NOTE 来解释一下add_documents这个函数
+# add_documents里有一个uuid64的算法，每次都随机生成一批新的keys放在父亲文档中，如果父亲要用内存式的存储，就导致每次都生成了新的key，如果第二次不执行这个函数了，那当然就找不到结果，因为方法拿到的key和第一次不一样了
 
-retriever.add_documents(docs)
+# retriever.add_documents(docs)
+retriever.add_documents(docs, add_to_vectorstore=False)
 
 print(retriever.get_relevant_documents("湖南科技大学现在有教职工多少人?专任教师多少？有没有'四个一批'人才"))
 
