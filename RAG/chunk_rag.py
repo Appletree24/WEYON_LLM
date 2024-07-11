@@ -35,7 +35,7 @@ base_nodes = node_parser.get_nodes_from_documents(documents=docs)
 embeddings = ModelScopeEmbeddings(model_id=embedding_model)
 
 llm = OpenAILike(model="qwen2", api_base="http://192.168.100.111:9997/v1",
-                 api_key="dummy", max_tokens=100)
+                 api_key="dummy", max_tokens=5000)
 
 service_context = ServiceContext.from_defaults(embed_model=embeddings, llm=llm)
 
