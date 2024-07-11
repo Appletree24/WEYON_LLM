@@ -12,7 +12,6 @@
 from langchain_community.document_loaders import Docx2txtLoader
 from langchain_qdrant import Qdrant
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
 from qdrant_client import QdrantClient, models
 from langchain_core.embeddings import Embeddings
 from langchain_community.document_loaders import DirectoryLoader

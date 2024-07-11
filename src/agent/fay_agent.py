@@ -12,28 +12,23 @@ import os
 
 from agent.tools.Analysis import Analysis
 
-from agent.data.province import ProvinceData
-from agent.data.city import CityData
 from agent.core import content_db
 
-from langchain.agents import AgentExecutor, create_react_agent, Tool
+from langchain.agents import AgentExecutor, create_react_agent
 
 from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_community.callbacks import get_openai_callback
-
-from langchain_qdrant import Qdrant
 
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_core.messages import HumanMessage, AIMessage
 
 from langchain_openai import ChatOpenAI
-from langchain import PromptTemplate, FewShotPromptTemplate
+from langchain import PromptTemplate
 
 from embedding.modelscope_embedding import ModelScopeEmbeddings
-import src.utils.config_util as utils
+import utils.config_util as utils
 from qdrant_client import QdrantClient
 from langchain_qdrant import Qdrant
 
@@ -102,10 +97,9 @@ class FayAgentCore:
         self.db = db
 
         # 创建agent chain
-        analysis = Analysis(name="Analysis", description="在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果")
+        analysis = Analysis(name="Analysis",
+                            description="在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果")
         # 输入数据处理
-        self.province_data = ProvinceData()
-        self.city_data = CityData()
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.tools = toolkit.get_tools()
         self.tools.append(analysis)
@@ -153,7 +147,6 @@ class FayAgentCore:
     def run(self, input_text, retriever: VectorStoreRetriever):
         result = ""
         re = ""
-        chunks = []
         try:
             input_text = input_text.replace(
                 '主人语音说了：', '').replace('主人文字说了：', '')

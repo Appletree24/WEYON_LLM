@@ -9,33 +9,27 @@
 # @Version   :1.0
 # 请不要用GPT生成代码中的注释，谢谢。
 
+from typing import List
+
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers import ParentDocumentRetriever
+from langchain.retrievers.document_compressors.base import DocumentCompressorPipeline
+from langchain.retrievers.document_compressors.chain_extract import LLMChainExtractor
+from langchain.retrievers.document_compressors.embeddings_filter import EmbeddingsFilter
+from langchain.storage import InMemoryStore
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import Docx2txtLoader
+from langchain_community.document_transformers import EmbeddingsRedundantFilter
+# from qdrant_client.http.exceptions import UnexpectedResponse as NOTFOUND_COLLECTION
+from langchain_community.document_transformers.long_context_reorder import LongContextReorder
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.retrievers import BaseRetriever
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient, models
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.storage import InMemoryStore
-from langchain_community.document_loaders import Docx2txtLoader
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers import ParentDocumentRetriever
-from langchain.schema.runnable import RunnableMap
-from langchain.schema.output_parser import StrOutputParser
-# from qdrant_client.http.exceptions import UnexpectedResponse as NOTFOUND_COLLECTION
-from langchain_community.document_transformers.long_context_reorder import LongContextReorder
-from langchain_community.document_transformers import EmbeddingsRedundantFilter
-from langchain.retrievers.document_compressors.chain_extract import LLMChainExtractor
-from langchain.retrievers.document_compressors.embeddings_filter import EmbeddingsFilter
-from langchain_community.document_transformers import EmbeddingsClusteringFilter
-from langchain_community.document_transformers.embeddings_redundant_filter import EmbeddingsClusteringFilter
-from src.embedding.modelscope_embedding import ModelScopeEmbeddings
-from langchain.retrievers.document_compressors.base import DocumentCompressorPipeline
-from langchain.prompts import ChatPromptTemplate
-from langchain.retrievers import ParentDocumentRetriever
-from langchain.chains.retrieval_qa.base import RetrievalQA
-from langchain.retrievers import MergerRetriever
-from langchain_core.retrievers import BaseRetriever
+
 from utils.Files_util import get_docxs_without_splitter
-from typing import List
+
 
 # ATTENTION 如果按照之前的策略，一个用户给一个Collection，那Collection中的Points数量会不断增加，如何解决？
 # 并且如果一个Collection里放很多文档，有没有必要做Merger了？那不一个Retriever就解决了？
