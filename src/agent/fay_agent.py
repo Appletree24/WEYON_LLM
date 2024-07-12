@@ -32,7 +32,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate, FewShotPromptTemplate
 
-import src.utils.config_util as utils
+import utils.config_util as utils
 from qdrant_client import QdrantClient
 from langchain_qdrant import Qdrant
 
