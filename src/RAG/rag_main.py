@@ -32,6 +32,7 @@ from langchain_community.storage import MongoDBStore
 
 from utils.Files_util import get_docxs_without_splitter
 
+# TODO 分块要进一步进行优化，现在很多问题都查不出来(甚至不是图表当中的信息)
 
 # ATTENTION 如果按照之前的策略，一个用户给一个Collection，那Collection中的Points数量会不断增加，如何解决？
 # 并且如果一个Collection里放很多文档，有没有必要做Merger了？那不一个Retriever就解决了？
@@ -48,8 +49,8 @@ class RagMain():
     embeddings_jina = HuggingFaceEmbeddings(
         model_name="jinaai/jina-embeddings-v2-base-zh")
     parent_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2000,
-        chunk_overlap=200,
+        chunk_size=768,
+        chunk_overlap=100,
         separators=[
             "\n\n",
             "\n",
@@ -64,8 +65,8 @@ class RagMain():
             "",
         ])
     child_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2000,
-        chunk_overlap=200,
+        chunk_size=768,
+        chunk_overlap=100,
         separators=[
             "\n\n",
             "\n",
@@ -100,14 +101,14 @@ class RagMain():
             self.qdrant_client.create_collection(
                 collection_name=collection_name,
                 vectors_config=models.VectorParams(
-                    size=1024,
+                    size=768,
                     distance=models.Distance.COSINE
                 )
             )
         qdrant_child = Qdrant(
             self.qdrant_client,
             collection_name=collection_name,
-            embeddings=self.embeddings_bge
+            embeddings=self.embeddings_jina
         )
         parent_retriever = ParentDocumentRetriever(
             parent_splitter=self.parent_splitter,
@@ -121,10 +122,10 @@ class RagMain():
         parent_retriever.add_documents(docxs)
 
         redundant_filter = EmbeddingsRedundantFilter(
-            embeddings=self.embeddings_jina)
+            embeddings=self.embeddings_bge)
 
         relevant_filter = EmbeddingsFilter(
-            embeddings=self.embeddings_jina, k=3)
+            embeddings=self.embeddings_bge, k=3)
 
         reorder = LongContextReorder()
 
