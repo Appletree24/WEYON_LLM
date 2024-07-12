@@ -32,6 +32,8 @@ def profile_query(ServeChatModel):
         关键词：XXX 
         ---
         联想关键词： XXX
+        ---
+        历史对话或者上下文的参考：XXX
 
         ## 历史对话：
         {chat_history}
@@ -71,8 +73,7 @@ def profile_query_chain(ServeChatModel, profile_query, qdrant_retriever):
         return p
 
     def extract_keywords(p):
-        keywords = p['profile'].content.split(' ')
-        return keywords
+        return p['profile'].content
 
     # TODO 抽取关键词，从retriever中查找相关文档
     return ({'profile': profile_query} | RunnableLambda(extract_keywords) |
