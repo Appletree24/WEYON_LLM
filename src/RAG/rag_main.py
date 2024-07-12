@@ -6,7 +6,7 @@
 # @Email     :1246908638zxc@gmail.com
 # @Software  :Vscode
 # @Description: Advanced-Rag
-# @Version   :1.0
+# @Version   :1.1
 # 请不要用GPT生成代码中的注释，谢谢。
 
 from typing import List
@@ -28,6 +28,7 @@ from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient, models
 from langchain.chains.retrieval_qa.base import RetrievalQA, BaseRetrievalQA
+from langchain_community.storage import MongoDBStore
 
 from utils.Files_util import get_docxs_without_splitter
 
@@ -38,11 +39,11 @@ from utils.Files_util import get_docxs_without_splitter
 
 
 class RagMain():
+    mongo_conn_str = "mongodb://localhost:27017/"
     model_name: str = ""
     embedding_name: str = ""
     llm: ChatOpenAI = None
     file_loaders: List[Docx2txtLoader] = None
-    embeddings_gte = HuggingFaceEmbeddings(model_name="thenlper/gte-large")
     embeddings_bge = HuggingFaceEmbeddings(model_name='BAAI/bge-m3')
     embeddings_jina = HuggingFaceEmbeddings(
         model_name="jinaai/jina-embeddings-v2-base-zh")
@@ -80,7 +81,6 @@ class RagMain():
         ])
 
     qdrant_client = QdrantClient(location="192.168.100.111:6333")
-    docs_store = InMemoryStore()
 
     retriever: BaseRetriever
 
@@ -91,6 +91,9 @@ class RagMain():
         self.llm = ChatOpenAI(model=model_name, max_tokens=max_tokens, max_retries=2,
                               api_key=openai_api_key, base_url=openai_api_base, streaming=True,
                               verbose=verbose)
+        mongodb_store = MongoDBStore(
+            self.mongo_conn_str, db_name="ai_use", collection_name=collection_name
+        )
         if files_path == "":
             raise ValueError("files_path is Empty")
         if self.qdrant_client.collection_exists(collection_name=collection_name) is False:
@@ -110,7 +113,7 @@ class RagMain():
             parent_splitter=self.parent_splitter,
             child_splitter=self.child_splitter,
             vectorstore=qdrant_child,
-            docstore=self.docs_store,
+            docstore=mongodb_store,
         )
 
         docxs = get_docxs_without_splitter(files_path=files_path)
@@ -120,15 +123,16 @@ class RagMain():
         redundant_filter = EmbeddingsRedundantFilter(
             embeddings=self.embeddings_jina)
 
-        # relevant_filter = EmbeddingsFilter(
-        #    embeddings=self.embeddings_jina, k=3)
+        relevant_filter = EmbeddingsFilter(
+            embeddings=self.embeddings_jina, k=3)
 
         reorder = LongContextReorder()
 
-        # compressor = LLMChainExtractor.from_llm(self.llm)
+        compressor = LLMChainExtractor.from_llm(self.llm)
 
         pipeline = DocumentCompressorPipeline(
-            transformers=[redundant_filter, reorder]
+            transformers=[compressor, redundant_filter,
+                          relevant_filter, reorder]
         )
 
         self.retriever = ContextualCompressionRetriever(

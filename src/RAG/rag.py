@@ -34,6 +34,10 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain.retrievers import MergerRetriever
+from langchain_community.storage.mongodb import MongoDBStore
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 
 # ATTENTION 如果按照之前的策略，一个用户给一个Collection，那Collection中的Points数量会不断增加，如何解决？
 # 并且如果一个Collection里放很多文档，有没有必要做Merger了？那不一个Retriever就解决了？
@@ -46,6 +50,13 @@ template = """
 问题：{question}
 
 """
+
+mongo_conn_str = "mongodb://localhost:27017/"
+
+mongodb_store = MongoDBStore(
+    mongo_conn_str, db_name="ai_use",
+    collection_name="rag_test_child_dim_1024"
+)
 
 prompt = ChatPromptTemplate.from_template(template)
 
@@ -90,12 +101,9 @@ llm = ChatOpenAI(model="qwen2-pro", max_tokens=5000, max_retries=2, api_key="dum
 
 loaders = [
     Docx2txtLoader(
-        file_path='/home/kemove/AI_Projects/zzh/WEYON_LLM/RAG/HNUST.docx'),
-    Docx2txtLoader(file_path='WEYON_LLM/RAG/Mao.docx'),
-    Docx2txtLoader(
-        file_path='WEYON_LLM/RAG/HengYang.docx'),
-    Docx2txtLoader(file_path='WEYON_LLM/RAG/Chuanmei.docx'),
-    Docx2txtLoader(file_path='WEYON_LLM/RAG/Jingmao.docx'),
+        file_path='WEYON_LLM/resources/doc/HengYang.docx'),
+    Docx2txtLoader(file_path='WEYON_LLM/resources/doc/Chuanmei.docx'),
+    Docx2txtLoader(file_path='WEYON_LLM/resources/doc/Jingmao.docx'),
 ]
 
 docs = []
@@ -137,7 +145,7 @@ retriever = ParentDocumentRetriever(
     parent_splitter=parent_splitter,
     child_splitter=child_spillter,
     vectorstore=qdrant_child,
-    docstore=parent_store,
+    docstore=mongodb_store,
 )
 
 # collection_counts = qdrant_client.count(
@@ -149,7 +157,7 @@ retriever = ParentDocumentRetriever(
 # add_documents里有一个uuid64的算法，每次都随机生成一批新的keys放在父亲文档中，如果父亲要用内存式的存储，就导致每次都生成了新的key，如果第二次不执行这个函数了，那当然就找不到结果，因为方法拿到的key和第一次不一样了
 
 # retriever.add_documents(docs)
-retriever.add_documents(docs)
+#retriever.add_documents(docs)
 
 print(retriever.get_relevant_documents("湖南科技大学现在有教职工多少人?专任教师多少？有没有'四个一批'人才"))
 
