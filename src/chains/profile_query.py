@@ -46,9 +46,23 @@ def profile_query(ServeChatModel):
         logger.debug(p)
         return p
 
+    def extra_keywords(p):
+        res = {}
+
+        def extra_with(li, start):
+            return [i for i in li if i.strip().startswith(start)]
+
+        pros = p.content.splitlines()
+        res['profile'] = p.content
+        res['keywords'] = extra_with(pros, '关键词：')
+        res['extra_keywords'] = extra_with(pros, '联想关键词：')
+        res['profile_query'] = extra_with(pros, '优化后的输入：')
+        return res
+
     profile_query_chain = (prompt
                            | RunnableLambda(log)
-                           | ServeChatModel)
+                           | ServeChatModel
+                           | RunnableLambda(extra_keywords))
     return profile_query_chain
 
 
@@ -73,23 +87,11 @@ def profile_query_chain(ServeChatModel, profile_query, qdrant_retriever):
         logger.debug(p)
         return p
 
-    def extra_keywords(p):
-        res = p.copy()
-
-        def extra_with(li, start):
-            return [i for i in li if i.strip().startswith(start)]
-
-        pros = p['profile'].content.splitlines()
-        res['keywords'] = extra_with(pros, '关键词：')
-        res['extra_keywords'] = extra_with(pros, '联想关键词：')
-        res['profile_query'] = extra_with(pros, '优化后的输入：')
-        return res
-
     def retriever(p):
-        res = {'profile': p['profile'].content}
+        res = p.copy()
         # 仅用关键词从向量数据库中查询数据
         res['context'] = qdrant_retriever.invoke(str(p['extra_keywords']))
         return res
 
-    return ({'profile': profile_query} | RunnableLambda(extra_keywords) | RunnableLambda(retriever) |
+    return (profile_query | RunnableLambda(retriever) |
             RunnableLambda(log) | prompt | ServeChatModel)

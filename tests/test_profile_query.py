@@ -9,7 +9,7 @@ class Test(TestCase):
         _ = profile_query
         profile_chain = default_context.get_bean("profile_query")
         res = profile_chain.invoke({"question": '我是谁', "chat_history": '我是Leo'})
-        get_logger('test_profile_query').info(res.content)
+        get_logger('test_profile_query').info(res['profile'])
         self.assertIsNotNone(res)
 
     def test_profile_query_chain(self):
