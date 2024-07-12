@@ -6,8 +6,7 @@ from llm import chat_openai
 from logs import get_logger
 from retriever import qdrant_retriever
 
-_ = chat_openai
-_ = qdrant_retriever
+_ = chat_openai, qdrant_retriever
 
 logger = get_logger('simple_chain')
 
