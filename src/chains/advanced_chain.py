@@ -19,7 +19,7 @@ def advanced_chain(ServeChatModel):
     rag_main = RagMain(model_name="qwen2-pro",
                        openai_api_key="dummy",
                        openai_api_base="http://192.168.100.111:8000/v1",
-                       max_tokens=15000,
+                       max_tokens=10000,
                        verbose=True,
                        collection_name="test_1_1024",
                        files_path='/home/kemove/AI_Projects/zzh/WEYON_LLM/resources/doc')
