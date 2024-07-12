@@ -4,15 +4,15 @@
 from langchain_core.runnables import Runnable
 
 import logs
-from agent.fay_agent import FayAgentCore
-from chains import simple_chain
+# from agent.fay_agent import FayAgentCore
+from chains import simple_chain, profile_query
 from basic import default_context
 
-_ = simple_chain
+_ = simple_chain, profile_query
 
 
 def query_profile(message, history):
-    chain: Runnable = default_context['profile_query']
+    chain: Runnable = default_context['profile_query_chain']
     partial_message = ""
     # 历史对话总是从用户开始，然后机器人
     history_msg = []
@@ -25,9 +25,10 @@ def query_profile(message, history):
         history_msg.append(('ai', bot_message))
     history_msg = str(history_msg[:-4]).replace(r"\n", "\n")
     logs.get_logger('chat').debug(history_msg)
-    for chunk in chain.stream([message, history_msg]):
+    for chunk in chain.stream({"question": message, "chat_history": history_msg}):
         partial_message = partial_message + chunk.content
         yield partial_message
+
 
 def chain(message, history):
     chain: Runnable = default_context['simple_chain']

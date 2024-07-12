@@ -25,8 +25,6 @@ def profile_query(ServeChatModel):
         当理解上出现模棱两可时，尽可能向教育、大学、职业发展规划等方向倾斜。
 
         ## 格式： 
-        优化前的输入：XXX。
-        ---
         优化后的输入：XXX。
         ---
         关键词：XXX 
@@ -62,6 +60,9 @@ def profile_query_chain(ServeChatModel, profile_query, qdrant_retriever):
         你是一位湘潭大学招生办的老师，你的任务是尽你所能回答学生或者家长的问题。下面是用户的问题以及我帮你整理好的相关资料。可以用作参考。
         请一定要符合事实。联想词可以用来参考，但是一定以关键词为主。尽量简明的给出答案，分点作答。
         
+        ## 相关资料：
+        {context}
+        
         ## 优化后的用户输入：
         {profile}
         
@@ -72,9 +73,11 @@ def profile_query_chain(ServeChatModel, profile_query, qdrant_retriever):
         logger.debug(p)
         return p
 
-    def extract_keywords(p):
-        return p['profile'].content
+    def retriever(p):
+        res = {'profile': p['profile'].content}
+        res['context'] = qdrant_retriever.invoke(res['profile'])
+        return res
 
     # TODO 抽取关键词，从retriever中查找相关文档
-    return ({'profile': profile_query} | RunnableLambda(extract_keywords) |
-            RunnableLambda(log) | prompt | RunnableLambda(log) | ServeChatModel)
+    return ({'profile': profile_query} | RunnableLambda(retriever) |
+            RunnableLambda(log) | prompt | ServeChatModel)
