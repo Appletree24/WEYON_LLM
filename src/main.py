@@ -23,7 +23,7 @@ def query_profile(message, history):
         if isinstance(bot_message, list):
             bot_message = "".join(bot_message)
         history_msg.append(('ai', bot_message))
-    history_msg = str(history_msg[:-4]).replace(r"\n", "\n")
+    history_msg = str(history_msg).replace(r"\n", "\n")
     logs.get_logger('chat').debug(history_msg)
     for chunk in chain.stream({"question": message, "chat_history": history_msg}):
         partial_message = partial_message + chunk.content

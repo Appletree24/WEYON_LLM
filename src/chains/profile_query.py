@@ -21,7 +21,7 @@ def profile_query(ServeChatModel):
         """
         ## 指令：
         请优化用户的输入，简称变成正式的全称，错别字修正。将优化后的结果输出。然后提取其中的关键词。
-        可以适当的联想和扩充，但一定要符合原文主旨。你可以正确的关联以有的历史对话。
+        可以适当的联想和扩充，但一定要符合原文主旨。你可以正确的关联的历史对话，从历史对话中提取出有用的信息辅助回答问题。
         当理解上出现模棱两可时，尽可能向教育、大学、职业发展规划等方向倾斜。
 
         ## 格式： 
@@ -73,11 +73,23 @@ def profile_query_chain(ServeChatModel, profile_query, qdrant_retriever):
         logger.debug(p)
         return p
 
-    def retriever(p):
-        res = {'profile': p['profile'].content}
-        res['context'] = qdrant_retriever.invoke(res['profile'])
+    def extra_keywords(p):
+        res = p.copy()
+
+        def extra_with(li, start):
+            return [i for i in li if i.strip().startswith(start)]
+
+        pros = p['profile'].content.splitlines()
+        res['keywords'] = extra_with(pros, '关键词：')
+        res['extra_keywords'] = extra_with(pros, '联想关键词：')
+        res['profile_query'] = extra_with(pros, '优化后的输入：')
         return res
 
-    # TODO 抽取关键词，从retriever中查找相关文档
-    return ({'profile': profile_query} | RunnableLambda(retriever) |
+    def retriever(p):
+        res = {'profile': p['profile'].content}
+        # 仅用关键词从向量数据库中查询数据
+        res['context'] = qdrant_retriever.invoke(str(p['extra_keywords']))
+        return res
+
+    return ({'profile': profile_query} | RunnableLambda(extra_keywords) | RunnableLambda(retriever) |
             RunnableLambda(log) | prompt | ServeChatModel)
