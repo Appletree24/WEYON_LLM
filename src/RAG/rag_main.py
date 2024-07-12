@@ -100,14 +100,14 @@ class RagMain():
             self.qdrant_client.create_collection(
                 collection_name=collection_name,
                 vectors_config=models.VectorParams(
-                    size=1024,
+                    size=2048,
                     distance=models.Distance.COSINE
                 )
             )
         qdrant_child = Qdrant(
             self.qdrant_client,
             collection_name=collection_name,
-            embeddings=self.embeddings_bge
+            embeddings=self.embeddings_jina
         )
         parent_retriever = ParentDocumentRetriever(
             parent_splitter=self.parent_splitter,
@@ -121,10 +121,10 @@ class RagMain():
         parent_retriever.add_documents(docxs)
 
         redundant_filter = EmbeddingsRedundantFilter(
-            embeddings=self.embeddings_jina)
+            embeddings=self.embeddings_bge)
 
         relevant_filter = EmbeddingsFilter(
-            embeddings=self.embeddings_jina, k=3)
+            embeddings=self.embeddings_bge, k=3)
 
         reorder = LongContextReorder()
 
