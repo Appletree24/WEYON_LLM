@@ -14,7 +14,7 @@ sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上�
 
 
 @chains.register
-def simple_rag(ServeChatModel, qdrant_retriever):
+def simple_rag(qdrant_retriever):
     prompt = ChatPromptTemplate.from_messages([
         ('system', sys_prompt),
         ('system', "今天是{date},星期{week}."),
