@@ -27,11 +27,14 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate
 
-from embedding.modelscope_embedding import ModelScopeEmbeddings
-import utils.config_util as utils
 from qdrant_client import QdrantClient
 from langchain_qdrant import Qdrant
+from embedding.modelscope_embedding import ModelScopeEmbeddings
+import utils.config_util as utils
+from chains.profile_query import profile_query
+from basic import default_context
 
+_ = profile_query
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -154,6 +157,10 @@ class FayAgentCore:
             input_text = input_text + RAG_ENHANCE_PROMPT
             with get_openai_callback() as cb:
                 # result = self.agent.run(agent_prompt)
+                profile_chain = default_context.get_bean("profile_query")
+                res = profile_chain.invoke({"question": input_text, "chat_history": self.chat_history})
+                print(res)
+                input_text = res['profile_query'][0].split('：')[1]
                 result = self.agent.invoke(
                     {"input": input_text, "chat_history": self.chat_history})
 

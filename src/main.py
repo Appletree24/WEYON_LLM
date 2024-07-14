@@ -79,7 +79,7 @@ def chain(message, history):
 import gradio as gr
 
 if __name__ == "__main__":
-    chain_interface = gr.ChatInterface(chain, title="Simple Chain")
+    chain_interface = gr.ChatInterface(chain, title="Simple Chain", concurrency_limit=10)
     profile_interface = gr.ChatInterface(query_profile, title="Simple Profile")
     # rag_interface = gr.ChatInterface(rag, title="Simple Rag")
     # agent_interface = gr.ChatInterface(simple_agent, title="Simple Agent")
