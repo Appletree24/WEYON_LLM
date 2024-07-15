@@ -16,7 +16,6 @@ from langchain.retrievers import ParentDocumentRetriever
 from langchain.retrievers.document_compressors.base import DocumentCompressorPipeline
 from langchain.retrievers.document_compressors.chain_extract import LLMChainExtractor
 from langchain.retrievers.document_compressors.embeddings_filter import EmbeddingsFilter
-from langchain.storage import InMemoryStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import Docx2txtLoader
 from langchain_community.document_transformers import EmbeddingsRedundantFilter
@@ -29,6 +28,7 @@ from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient, models
 from langchain.chains.retrieval_qa.base import RetrievalQA, BaseRetrievalQA
 from langchain_community.storage import MongoDBStore
+from langchain_nomic import NomicEmbeddings
 
 from utils.Files_util import get_docxs_without_splitter
 
@@ -48,9 +48,10 @@ class RagMain():
     embeddings_bge = HuggingFaceEmbeddings(model_name='BAAI/bge-m3')
     embeddings_jina = HuggingFaceEmbeddings(
         model_name="jinaai/jina-embeddings-v2-base-zh")
+    # embeddings_nomic = NomicEmbeddings(model="nomic-embed-text-v1.5")
     parent_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=768,
-        chunk_overlap=100,
+        chunk_size=1024,
+        chunk_overlap=200,
         separators=[
             "\n\n",
             "\n",
@@ -65,7 +66,7 @@ class RagMain():
             "",
         ])
     child_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=768,
+        chunk_size=1024,
         chunk_overlap=100,
         separators=[
             "\n\n",
@@ -93,7 +94,7 @@ class RagMain():
                               api_key=openai_api_key, base_url=openai_api_base, streaming=True,
                               verbose=verbose)
         mongodb_store = MongoDBStore(
-            self.mongo_conn_str, db_name="ai_use", collection_name=collection_name
+           self.mongo_conn_str, db_name="ai_use", collection_name=collection_name
         )
         if files_path == "":
             raise ValueError("files_path is Empty")
@@ -101,43 +102,50 @@ class RagMain():
             self.qdrant_client.create_collection(
                 collection_name=collection_name,
                 vectors_config=models.VectorParams(
-                    size=768,
+                    size=1024,
                     distance=models.Distance.COSINE
                 )
             )
-        qdrant_child = Qdrant(
-            self.qdrant_client,
+
+        qdrant = Qdrant.from_existing_collection(
+            embedding=self.embeddings_bge,
             collection_name=collection_name,
-            embeddings=self.embeddings_jina
+            url="http://192.168.100.111:6333",
         )
-        parent_retriever = ParentDocumentRetriever(
-            parent_splitter=self.parent_splitter,
-            child_splitter=self.child_splitter,
-            vectorstore=qdrant_child,
-            docstore=mongodb_store,
-        )
+        #qdrant_child = Qdrant(
+        #   self.qdrant_client,
+        #   collection_name=collection_name,
+        #   embeddings=self.embeddings_bge
+        #)
+        #parent_retriever = ParentDocumentRetriever(
+        #   parent_splitter=self.parent_splitter,
+        #   child_splitter=self.child_splitter,
+        #   vectorstore=qdrant_child,
+        #   docstore=mongodb_store,
+        #)
 
-        docxs = get_docxs_without_splitter(files_path=files_path)
+        #docxs = get_docxs_without_splitter(files_path=files_path)
 
-        parent_retriever.add_documents(docxs)
+        #qdrant_child.add_documents(docxs)
+
+        #parent_retriever.add_documents(docxs)
 
         redundant_filter = EmbeddingsRedundantFilter(
-            embeddings=self.embeddings_bge)
+            embeddings=self.embeddings_jina)
 
         relevant_filter = EmbeddingsFilter(
-            embeddings=self.embeddings_bge, k=3)
+            embeddings=self.embeddings_jina, k=5)
 
         reorder = LongContextReorder()
 
-        compressor = LLMChainExtractor.from_llm(self.llm)
+        #compressor = LLMChainExtractor.from_llm(self.llm)
 
         pipeline = DocumentCompressorPipeline(
-            transformers=[compressor, redundant_filter,
-                          relevant_filter, reorder]
+            transformers=[relevant_filter, redundant_filter, reorder]
         )
 
         self.retriever = ContextualCompressionRetriever(
-            base_retriever=parent_retriever,
+            base_retriever=qdrant.as_retriever(search_type="mmr"),
             base_compressor=pipeline
         )
 
