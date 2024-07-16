@@ -2,7 +2,7 @@
 用来优化用户查询的链
 """
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_core.runnables import RunnableLambda
 
 import chains
 from llm import chat_openai
@@ -67,7 +67,7 @@ def profile_query(ServeChatModel):
 
 
 @chains.register
-def profile_query_chain(ServeChatModel, profile_query, qdrant_retriever):
+def profile_query_rag(ServeChatModel, profile_query, qdrant_retriever):
     prompt = ChatPromptTemplate.from_template(
         """
         ## 指令：
