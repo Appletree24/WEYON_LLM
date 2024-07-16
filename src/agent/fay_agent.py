@@ -10,46 +10,41 @@
 
 import os
 
-from langchain_core.messages import HumanMessage, AIMessage
-
-from agent.tools.MyTimer import MyTimer
-from agent.tools.Weather import Weather
-from agent.tools.QueryTime import QueryTime
-from agent.tools.PythonExecutor import PythonExecutor
-from agent.tools.WebPageRetriever import WebPageRetriever
-from agent.tools.WebPageScraper import WebPageScraper
-from agent.data.province import ProvinceData
-from agent.data.city import CityData
-from agent.core import content_db
-
-from langchain.agents import AgentExecutor, create_react_agent, Tool
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_qdrant import Qdrant
-from langchain_core.vectorstores import VectorStoreRetriever
+from langchain import PromptTemplate
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_openai import ChatOpenAI
-from langchain import PromptTemplate, FewShotPromptTemplate
-from langchain_community.utilities import SQLDatabase
 from langchain_community.callbacks import get_openai_callback
-import utils.config_util as utils
-
-from qdrant_client import QdrantClient
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.utilities import SQLDatabase
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
+from qdrant_client import QdrantClient
 
+import utils.config_util as utils
+from agent.core import content_db
+from agent.tools.Analysis import Analysis
+from basic import default_context
+from chains.profile_query import profile_query
+from embedding.modelscope_embedding import ModelScopeEmbeddings
+
+_ = profile_query
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class FayAgentCore():
+class FayAgentCore:
     qdrant_retriever: VectorStoreRetriever
 
     def __init__(self):
-        embedding_name = "BAAI/bge-m3"
-        embeddings = HuggingFaceEmbeddings(model_name=embedding_name)
+        embedding_name = "iic/nlp_gte_sentence-embedding_chinese-base"
+        embeddings = ModelScopeEmbeddings(modelscope_embeddings_model_id=embedding_name)
         qdrant_client = QdrantClient(location="192.168.100.111:6333")
         qdrant = Qdrant(
-            qdrant_client, collection_name="csv_sql_dim_1024", embeddings=embeddings)
+            qdrant_client, collection_name="csv_sql_dim_1024", embeddings=embeddings
+        )
         self.qdrant_retriever = qdrant.as_retriever(search_kwargs={"k": 3})
+
         utils.load_config()
         if str(utils.tavily_api_key) != '':
             os.environ["TAVILY_API_KEY"] = utils.tavily_api_key
@@ -87,36 +82,18 @@ class FayAgentCore():
         db_host = "192.168.100.111"
         db_name = "ai_use"
 
-        # from urllib.parse import quote_plus
-        # 阿里云仓库
-        # db_user = "xxx"
-        # db_password = quote_plus("xxxx")
-        # db_host = "xxx"
-        # db_name = "xxx"
-
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
         db._sample_rows_in_table_info = 3  # 将底部的样例输出修改为0
         self.db = db
 
         # 创建agent chain
-        my_timer = MyTimer()
-        weather_tool = Weather()
-        query_time = QueryTime()
-        # query_timer_db_tool = QueryTimerDB()
-        # delete_timer_tool = DeleteTimer()
-        python_executor = PythonExecutor()
-        web_page_retriever = WebPageRetriever()
-        web_page_scraper = WebPageScraper()
-        # list_sql = ListSql()
-        # toolkit = MySQLDatabaseToolkit(db=db, llm=self.llm)
-        # tools = toolkit.get_tools()
-
+        analysis = Analysis(name="Analysis",
+                            description="在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果")
         # 输入数据处理
-        self.province_data = ProvinceData()
-        self.city_data = CityData()
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.tools = toolkit.get_tools()
+        self.tools.append(analysis)
         if str(utils.tavily_api_key) != '':
             self.tools.append(TavilySearchResults(max_results=1))
 
@@ -136,12 +113,20 @@ class FayAgentCore():
             agent = create_react_agent(self.llm, self.tools, prompt)
             # 通过传入agent和tools来创建一个agent executor
             self.agent = AgentExecutor(
-                agent=agent, tools=self.tools, verbose=True, handle_parsing_errors=True)
+                agent=agent,
+                tools=self.tools,
+                verbose=True,
+                handle_parsing_errors=True,
+                max_iterations=15,
+                max_execution_time=60,
+                trim_intermediate_steps=3
+            )
             self.total_tokens = 0
             self.total_cost = 0
 
     # 记忆prompt
     def set_history(self, result):
+
         if (len(self.chat_history) >= int(utils.max_history_num)):
             del self.chat_history[0]
             del self.chat_history[0]
@@ -157,13 +142,17 @@ class FayAgentCore():
             input_text = input_text.replace(
                 '主人语音说了：', '').replace('主人文字说了：', '')
             RAG_ENHANCE_PROMPT = str(retriever.invoke(input_text))
-            input_text = input_text+RAG_ENHANCE_PROMPT
+            input_text = input_text + RAG_ENHANCE_PROMPT
             with get_openai_callback() as cb:
                 # result = self.agent.run(agent_prompt)
+                profile_chain = default_context.get_bean("profile_query")
+                res = profile_chain.invoke({"question": input_text, "chat_history": self.chat_history})
+                print(res)
+                input_text = res['profile_query'][0].split('：')[1]
                 result = self.agent.invoke(
                     {"input": input_text, "chat_history": self.chat_history})
+
                 re = "执行完毕" if re is None or re == "N/A" else result['output']
-                self.total_tokens = self.total_tokens + cb.total_tokens
 
         except Exception as e:
             print(e)

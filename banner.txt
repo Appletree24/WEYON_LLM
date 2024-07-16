@@ -1,0 +1,17 @@
+------------------------------------------------------------------
+|                         WeYon Rag LLM                          |
+|                                                                |
+|                                                                |
+|    This is a Rag App with local Knowledge Base.                |
+|                                                                |
+|    If You want to modify some configurations,you can learn     |
+| more from `resource\application.yaml`                          |
+|                                                                |
+|    If you occur some problems that you can't solve by yourself |
+| welcome to concat with us in                                   |
+|                                                                |
+|           https://github.com/Appletree24/WEYON_LLM             |
+|                                                                |
+|                                                                |
+|                                       WeYon  Copyright@2024    |
+------------------------------------------------------------------

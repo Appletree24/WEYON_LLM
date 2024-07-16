@@ -3,9 +3,7 @@ import threading
 import datetime
 import time
 import os
-from agent.agent import FayAgentCore
-from agent.tools.QueryTime import QueryTime
-from core import fay_core
+from agent.fay_agent import FayAgentCore
 
 scheduled_tasks = {}
 agent_running = False

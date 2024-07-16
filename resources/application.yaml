@@ -7,6 +7,7 @@ serve_chat_model_config:
   max_tokens: 5000
   openai_api_key: "dummy"
 
+
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
