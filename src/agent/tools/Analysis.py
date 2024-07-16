@@ -9,7 +9,8 @@ from typing import Any
 
 class Analysis(BaseTool):
     name = "Analysis"
-    description = "在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果"
+    # description = "在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果"
+    description = "Be sure to call the tool before you output the final result, Remember to remember to implement this tool no matter what"
 
     async def _arun(
             self,
@@ -22,7 +23,7 @@ class Analysis(BaseTool):
         try:
             # print("para", para, type(para))
             data = para
-            return f"{data}，这是查询出来的数据信息，请你根据这个数据查询结果分析数据并延长文本回答"
+            return f"{data}，这是查询出来的数据信息，请你根据这个数据查询结果分析数据得出一定结论并延长文本回答."
         except Exception as e:
             print("错误", e)
             return "获取就业数据失败"

@@ -40,6 +40,7 @@
         当你有话要对用户说，或者如果你不需要使用工具，你必须使用以下格式:
         ```
         Thought: 你是否需要这个工具? 否
+        SQL: [the final sql statement]
         Final Answer: [your response here]
         ```
         开始!

@@ -6,6 +6,7 @@ from langchain_core.runnables import Runnable
 import logs
 from basic import default_context
 from chains import simple_chain, profile_query
+from agent.fay_agent import FayAgentCore
 
 _ = simple_chain, profile_query
 
@@ -56,6 +57,15 @@ def simple_chat(message, history):
         yield partial_message
 
 
+
+agent = FayAgentCore()
+
+
+def simple_agent(message, history):
+    user_input = message
+    return agent.run(user_input, agent.qdrant_retriever)[1]
+
+
 # 公司名称
 company_name = "WeYon"
 con_limit = 20
@@ -66,12 +76,14 @@ if __name__ == "__main__":
     rag_interface = gr.ChatInterface(simple_rag, title=f"{company_name} Rag", concurrency_limit=con_limit)
     profile_interface = gr.ChatInterface(profile_rag, title=f"{company_name} Rag Pro", concurrency_limit=con_limit)
     chat_interface = gr.ChatInterface(simple_chat, title=f"{company_name} Chat", concurrency_limit=con_limit)
+    agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} Chat", concurrency_limit=con_limit)
     from fastapi import FastAPI
 
     app = FastAPI()
     gr.mount_gradio_app(app, rag_interface, path="/rag")
     gr.mount_gradio_app(app, profile_interface, path="/rag/pro")
     gr.mount_gradio_app(app, chat_interface, path="/chat")
+    gr.mount_gradio_app(app, agent_interface, path="/agent")
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=7860)

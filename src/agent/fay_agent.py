@@ -10,24 +10,31 @@
 
 import os
 
-from langchain import PromptTemplate
-from langchain.agents import AgentExecutor, create_react_agent
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_community.callbacks import get_openai_callback
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_community.utilities import SQLDatabase
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_openai import ChatOpenAI
-from langchain_qdrant import Qdrant
-from qdrant_client import QdrantClient
-
-import utils.config_util as utils
-from agent.core import content_db
 from agent.tools.Analysis import Analysis
-from basic import default_context
-from chains.profile_query import profile_query
+
+from agent.core import content_db
+
+from langchain.agents import AgentExecutor, create_react_agent
+from agent.agents.agent import create_my_react_agent
+
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain_community.utilities import SQLDatabase
+from langchain_community.callbacks import get_openai_callback
+
+from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_core.messages import HumanMessage, AIMessage
+
+from langchain_openai import ChatOpenAI
+from langchain import PromptTemplate
+
+from qdrant_client import QdrantClient
+from langchain_qdrant import Qdrant
 from embedding.modelscope_embedding import ModelScopeEmbeddings
+import utils.config_util as utils
+from chains.profile_query import profile_query
+from basic import default_context
+from agent.globalData import globalData # 引入全局数据管理
 
 _ = profile_query
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -52,10 +59,11 @@ class FayAgentCore:
         os.environ["OPENAI_API_BASE"] = utils.gpt_base_url
         # 创建llm
         self.llm = ChatOpenAI(model=utils.gpt_model_engine)
+        # 是否输出表格
+        self.output_from = True
         # 保存基本信息到记忆
         utils.load_config()
         # 内存保存聊天历史
-        self.chat_history = []
         self.chat_history = []
         if int(utils.max_history_num) > 0:
             old_history = content_db.new_instance().get_list(
@@ -82,14 +90,20 @@ class FayAgentCore:
         db_host = "192.168.100.111"
         db_name = "ai_use"
 
+        # from urllib.parse import quote_plus
+        # 阿里云仓库
+        # db_user = "xxx"
+        # db_password = quote_plus("xxxx")
+        # db_host = "xxx"
+        # db_name = "xxx"
+
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
-        db._sample_rows_in_table_info = 3  # 将底部的样例输出修改为0
+        db._sample_rows_in_table_info = 0  # 将底部的样例输出修改为0
         self.db = db
 
         # 创建agent chain
-        analysis = Analysis(name="Analysis",
-                            description="在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果")
+        analysis = Analysis(name="Analysis")
         # 输入数据处理
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.tools = toolkit.get_tools()
@@ -105,12 +119,13 @@ class FayAgentCore:
                     'chat_history',
                     'input',
                     'tools',
-                    'tool_names'
+                    'tool_names',
                 ],
                 template=template,
             )
 
-            agent = create_react_agent(self.llm, self.tools, prompt)
+            # agent = create_react_agent(self.llm, self.tools, prompt)
+            agent = create_my_react_agent(self.llm, self.tools, prompt, output_from=self.output_from, db=self.db)
             # 通过传入agent和tools来创建一个agent executor
             self.agent = AgentExecutor(
                 agent=agent,
@@ -146,18 +161,20 @@ class FayAgentCore:
             with get_openai_callback() as cb:
                 # result = self.agent.run(agent_prompt)
                 profile_chain = default_context.get_bean("profile_query")
-                res = profile_chain.invoke({"question": input_text, "chat_history": self.chat_history})
-                print(res)
+                res = profile_chain.invoke({"question": input_text, "chat_history": " "})
                 input_text = res['profile_query'][0].split('：')[1]
+                print(input_text)
                 result = self.agent.invoke(
                     {"input": input_text, "chat_history": self.chat_history})
-
+                print(result)
                 re = "执行完毕" if re is None or re == "N/A" else result['output']
 
         except Exception as e:
             print(e)
 
         chat_text = re
+        if self.output_from:
+            chat_text = globalData.get_value('markdown_table')
 
         # 保存聊天对话
         if int(utils.max_history_num) > 0:
