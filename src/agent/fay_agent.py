@@ -10,29 +10,24 @@
 
 import os
 
-from agent.tools.Analysis import Analysis
-
-from agent.core import content_db
-
-from langchain.agents import AgentExecutor, create_react_agent
-
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_community.utilities import SQLDatabase
-from langchain_community.callbacks import get_openai_callback
-
-from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_core.messages import HumanMessage, AIMessage
-
-from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate
-
-from qdrant_client import QdrantClient
+from langchain.agents import AgentExecutor, create_react_agent
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain_community.callbacks import get_openai_callback
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.utilities import SQLDatabase
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
-from embedding.modelscope_embedding import ModelScopeEmbeddings
+from qdrant_client import QdrantClient
+
 import utils.config_util as utils
-from chains.profile_query import profile_query
+from agent.core import content_db
+from agent.tools.Analysis import Analysis
 from basic import default_context
+from chains.profile_query import profile_query
+from embedding.modelscope_embedding import ModelScopeEmbeddings
 
 _ = profile_query
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -86,13 +81,6 @@ class FayAgentCore:
         db_password = "AI20240520"
         db_host = "192.168.100.111"
         db_name = "ai_use"
-
-        # from urllib.parse import quote_plus
-        # 阿里云仓库
-        # db_user = "xxx"
-        # db_password = quote_plus("xxxx")
-        # db_host = "xxx"
-        # db_name = "xxx"
 
         db_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
         db = SQLDatabase.from_uri(db_uri)
