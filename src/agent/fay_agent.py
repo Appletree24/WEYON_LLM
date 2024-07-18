@@ -60,7 +60,7 @@ class FayAgentCore:
         # 创建llm
         self.llm = ChatOpenAI(model=utils.gpt_model_engine)
         # 是否输出表格
-        self.output_from = True
+        self.output_from = False
         # 保存基本信息到记忆
         utils.load_config()
         # 内存保存聊天历史
@@ -132,8 +132,8 @@ class FayAgentCore:
                 tools=self.tools,
                 verbose=True,
                 handle_parsing_errors=True,
-                max_iterations=15,
-                max_execution_time=60,
+                max_iterations=20,
+                max_execution_time=120,
                 trim_intermediate_steps=3
             )
             self.total_tokens = 0
@@ -166,16 +166,16 @@ class FayAgentCore:
                 print(input_text)
                 result = self.agent.invoke(
                     {"input": input_text, "chat_history": self.chat_history})
-                print(result)
+                # print(result)
                 re = "执行完毕" if re is None or re == "N/A" else result['output']
 
         except Exception as e:
-            print(e)
+            print("错误", e)
 
         chat_text = re
-        if self.output_from:
+        if self.output_from and globalData.get_value('markdown_table') != ' ':
             chat_text = globalData.get_value('markdown_table')
-
+            globalData.set_value('markdown_table', ' ')
         # 保存聊天对话
         if int(utils.max_history_num) > 0:
             self.set_history(result)
@@ -190,4 +190,4 @@ if __name__ == "__main__":
         if user_input.lower() in ["quit", "exit", "q"]:
             print("再见!")
             break
-        agent.run(user_input, retriever=agent.qdrant_retriever)
+        data = agent.run(user_input, retriever=agent.qdrant_retriever)[1]

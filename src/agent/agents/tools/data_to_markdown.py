@@ -12,6 +12,9 @@ globalData._init()
 
 class DataTreating:
     def data_to_markdown(self, input_string: str):
+        print("2", input_string)
+        if input_string is None or input_string == '' or 'Error:' in input_string:
+            return
         file_path = os.path.join(BASE_DIR, 'answer.txt')
         with open(file_path, 'w', encoding='UTF-8') as file:
             file.write('false\n')

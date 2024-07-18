@@ -76,7 +76,7 @@ if __name__ == "__main__":
     rag_interface = gr.ChatInterface(simple_rag, title=f"{company_name} Rag", concurrency_limit=con_limit)
     profile_interface = gr.ChatInterface(profile_rag, title=f"{company_name} Rag Pro", concurrency_limit=con_limit)
     chat_interface = gr.ChatInterface(simple_chat, title=f"{company_name} Chat", concurrency_limit=con_limit)
-    agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} Chat", concurrency_limit=con_limit)
+    agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} agent", concurrency_limit=con_limit)
     from fastapi import FastAPI
 
     app = FastAPI()
