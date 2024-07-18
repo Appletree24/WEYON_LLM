@@ -52,7 +52,7 @@ def simple_chat(message, history):
     history_msg = history_chat_build(history)
     partial_message = ""
     logs.get_logger('chat').debug(history_msg)
-    for chunk in chain.stream([message, history_msg]):
+    for chunk in chain.stream([history_msg , message]):
         partial_message = partial_message + chunk.content
         yield partial_message
 
