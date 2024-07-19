@@ -14,7 +14,7 @@ from typing import Any, List
 import embedding
 
 
-@embedding.register
+#@embedding.register
 class ModelScopeEmbeddings(Embeddings):
     embed: Any = None
 
