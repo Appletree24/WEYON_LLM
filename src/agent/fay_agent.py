@@ -27,6 +27,7 @@ from agent.agents.agent import create_my_react_agent
 from agent.core import content_db
 from agent.globalData import globalData  # 引入全局数据管理
 from agent.tools.Analysis import Analysis
+from agent.tools.CsvExample import CsvExample
 from basic import default_context
 from chains.profile_query import profile_query
 from embedding.modelscope_embedding import ModelScopeEmbeddings
@@ -99,10 +100,12 @@ class FayAgentCore:
 
         # 创建agent chain
         analysis = Analysis(name="Analysis")
+        csv_examplet = CsvExample(qdrant_retriever=self.qdrant_retriever)
         # 输入数据处理
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.tools = toolkit.get_tools()
         self.tools.append(analysis)
+        self.tools.insert(0, csv_examplet)
         if str(utils.tavily_api_key) != '':
             self.tools.append(TavilySearchResults(max_results=1))
 
