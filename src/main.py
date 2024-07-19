@@ -14,8 +14,7 @@ _ = simple_chain, profile_query
 def history_chat_build(history):
     # 历史对话总是从用户开始，然后机器人
     history_msg = []
-    remember_history = -default_context['remember_history']
-    for i, (user_message, bot_message) in enumerate(history[history_msg:]):
+    for i, (user_message, bot_message) in enumerate(history):
         if isinstance(user_message, list):
             user_message = "".join(user_message)
         history_msg.append(('user', user_message))
