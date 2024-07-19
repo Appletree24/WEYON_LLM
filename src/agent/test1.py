@@ -1,27 +1,18 @@
-import os
+import re
 
-from langchain_openai import ChatOpenAI
+text = """
+Action1: some_action
+Action1 Input1: some_input
+Action2: some_other_action
+Action2 Input2: some_other_input
+"""
 
-import utils.config_util as utils
+# pattern = r"Action\s*\d*\s*:\s*(.*?)\s*Action\s*\d*\s*Input\s*\d*\s*:\s*(.*)"
+pattern = r"Action\s*\d*\s*:[\s]*(.*?)[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
+# pattern = r"行动\s*\d*\s*：[\s]*(.*?)[\s]*行动\s*\d*\s*输入\s*\d*\s*：[\s]*(.*)"
+matches = re.findall(pattern, text)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-utils.load_config()
-if str(utils.tavily_api_key) != '':
-    os.environ["TAVILY_API_KEY"] = utils.tavily_api_key
-os.environ["OPENAI_API_KEY"] = utils.key_gpt_api_key
-os.environ["OPENAI_API_BASE"] = utils.gpt_base_url
-# 创建llm
-llm = ChatOpenAI(model=utils.gpt_model_engine)
-# 保存基本信息到记忆
-utils.load_config()
-print(llm.invoke("请将一下数据处理为markdown格式："
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2021届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2023届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2023届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2023届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2022届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2022届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2021届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2023届"
-                 "666666,666666,云就业大学,湖南省,长沙市,本科,普通本科高校,综合类院校,2023届"))
+for match in matches:
+    action, action_input = match
+    print(f"Action: {action}")
+    print(f"Input: {action_input}")

@@ -121,7 +121,6 @@ def create_my_react_agent(
     )
     if missing_vars:
         raise ValueError(f"Prompt missing required variables: {missing_vars}")
-
     prompt = prompt.partial(
         tools=tools_renderer(list(tools)),
         tool_names=", ".join([t.name for t in tools]),

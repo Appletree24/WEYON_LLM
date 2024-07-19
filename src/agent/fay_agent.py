@@ -10,8 +10,9 @@
 
 import os
 
+from langchain import hub
 from langchain import PromptTemplate
-from langchain.agents import AgentExecutor
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.callbacks import get_openai_callback
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -99,15 +100,25 @@ class FayAgentCore:
         self.db = db
 
         # 创建agent chain
-        analysis = Analysis(name="Analysis")
-        csv_examplet = CsvExample(qdrant_retriever=self.qdrant_retriever)
+        analysis_description = (
+            "确保在输出最终结果之前调用该工具，记住无论如何都要实现此工具")
+        analysis = Analysis(name="Analysis",
+                            description=analysis_description)
+        csv_example_description = (
+            "当确定进行sql查询时，应调用此工具进行向量数据库检索，查询相关样例以辅助模型生成")
+        csv_example = CsvExample(name="csv_example",
+                                 description=csv_example_description,
+                                 qdrant_retriever=self.qdrant_retriever)
         # 输入数据处理
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.tools = toolkit.get_tools()
         self.tools.append(analysis)
-        self.tools.insert(0, csv_examplet)
+        self.tools.insert(0, csv_example)
+        print(self.tools)
         if str(utils.tavily_api_key) != '':
             self.tools.append(TavilySearchResults(max_results=1))
+
+        # Get the prompt to use - you can modify this!
 
         with open(os.path.join(BASE_DIR, 'template.txt'), "r", encoding='utf-8') as f:
             template = f.read()

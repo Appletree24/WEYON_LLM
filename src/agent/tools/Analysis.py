@@ -3,23 +3,22 @@
 # author: acxgdxy,woshixiong
 # time: 2024/07/03
 # 请不要用GPT生成代码中的注释，谢谢。
+from typing import Any, Dict, Optional, Sequence, Type, Union
 from langchain.tools import BaseTool
+from langchain_core.pydantic_v1 import BaseModel, Field
 from typing import Any
 
 
+class _QueryAnalysisInput(BaseModel):
+    query: str = Field(..., description="A detailed and correct SQL query.")
+
+
 class Analysis(BaseTool):
-    name = "Analysis"
-    # description = "在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果"
-    description = "确保在输出最终结果之前调用该工具，记住无论如何都要实现此工具"
+    name: str = "Analysis"
+    description: str = "确保在输出最终结果之前调用该工具，记住无论如何都要实现此工具"
+    args_schema: Type[BaseModel] = _QueryAnalysisInput
 
-    async def _arun(
-            self,
-            *args: Any,
-            **kwargs: Any,
-    ) -> Any:
-        pass
-
-    def _run(self, para):
+    def _run(self, para) -> str:
         try:
             # print("para", para, type(para))
             data = para

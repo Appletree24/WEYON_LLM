@@ -25,9 +25,9 @@ from agent.agents.tools.data_to_markdown import DataTreating
 # )
 
 FINAL_ANSWER_ACTION = "最终答案："
-FINAL_SQL = "SQL:"
+FINAL_SQL = "SQL："
 MISSING_ACTION_AFTER_THOUGHT_ERROR_MESSAGE = (
-    "无效格式: 在'思考：'之后缺少'行动：'"
+    "无效格式： 在'思考：'之后缺少'行动：'"
 )
 MISSING_ACTION_INPUT_AFTER_ACTION_ERROR_MESSAGE = (
     "无效格式： 在'行动：'之后缺少'行动输入：'"
@@ -82,7 +82,7 @@ class ReActSingleInputOutputParser(AgentOutputParser):
         if action_match:
             if includes_answer:
                 raise OutputParserException(
-                    f"{FINAL_ANSWER_AND_PARSABLE_ACTION_ERROR_MESSAGE}: {text}"
+                    f"{FINAL_ANSWER_AND_PARSABLE_ACTION_ERROR_MESSAGE} {text}"
                 )
             action = action_match.group(1).strip()
             action_input = action_match.group(2)
@@ -97,7 +97,7 @@ class ReActSingleInputOutputParser(AgentOutputParser):
                 # 按照行分割文本
                 lines = text.splitlines()
                 # 找到包含"SQL:"的那一行，并提取其内容
-                sql_query_line = next((line for line in lines if "SQL:" in line), None)
+                sql_query_line = next((line for line in lines if "SQL：" in line), None)
                 sql = sql_query_line.split(FINAL_SQL)[-1].strip()
                 data_treating = DataTreating().data_to_markdown
                 # 创建线程来进行数据处理
@@ -108,24 +108,30 @@ class ReActSingleInputOutputParser(AgentOutputParser):
                 {"output": text.split(FINAL_ANSWER_ACTION)[-1].strip()}, text
             )
 
+        print("1", re.search(r"行动\s*\d*\s*：[\s]*(.*?)", text, re.DOTALL))
+        print("2", re.search(
+            r"[\s]*行动\s*\d*\s*输入\s*\d*\s*：[\s]*(.*)", text, re.DOTALL
+        ))
+        print("3", text)
+
         if not re.search(r"行动\s*\d*\s*：[\s]*(.*?)", text, re.DOTALL):
             raise OutputParserException(
-                f"无法解析LLM输出： `{text}`",
+                f"Could not parse LLM output: `{text}`",
                 observation=MISSING_ACTION_AFTER_THOUGHT_ERROR_MESSAGE,
                 llm_output=text,
                 send_to_llm=True,
             )
         elif not re.search(
-            r"[\s]*行动\s*\d*\s*输入\s*\d*\s*：[\s]*(.*)", text, re.DOTALL
+                r"[\s]*行动\s*\d*\s*输入\s*\d*\s*：[\s]*(.*)", text, re.DOTALL
         ):
             raise OutputParserException(
-                f"无法解析LLM输出： `{text}`",
+                f"Could not parse LLM output: `{text}`",
                 observation=MISSING_ACTION_INPUT_AFTER_ACTION_ERROR_MESSAGE,
                 llm_output=text,
                 send_to_llm=True,
             )
         else:
-            raise OutputParserException(f"无法解析LLM输出： `{text}`")
+            raise OutputParserException(f"Could not parse LLM output: `{text}`")
 
     @property
     def _type(self) -> str:
