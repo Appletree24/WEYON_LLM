@@ -12,8 +12,11 @@ remember_history: 6
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
-  collection_name: "kb_2024_07_03"
+  collection_name: "test_local"
 modelscope_embeddings_model_id: iic/nlp_gte_sentence-embedding_chinese-base
+xinference_embedding_config:
+  server_url: "http://192.168.100.111:9997"
+  model_uid: "bge-m3"
 
 profiles:
   includes:
