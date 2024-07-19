@@ -2,9 +2,9 @@
 # description: 辅助配置文件
 # author: acxgdxy
 # time: 2024/07/02
-import os
-import json
 import codecs
+import json
+import os
 from configparser import ConfigParser
 
 config: json = None
@@ -15,7 +15,7 @@ key_ali_nls_app_key = None
 key_ngrok_cc_id = None
 key_gpt_api_key = "xxx"
 key_gpt_tts_key = None
-gpt_base_url = "http://192.168.100.111:8000/v1"
+gpt_base_url = "http://192.168.100.111:8001/v1"
 gpt_tts_base_url = None
 ASR_mode = None
 local_asr_ip = None

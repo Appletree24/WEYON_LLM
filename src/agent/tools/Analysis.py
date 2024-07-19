@@ -10,7 +10,7 @@ from typing import Any
 class Analysis(BaseTool):
     name = "Analysis"
     # description = "在将最终查询结果输出给模型之前，一定要调用一次此工具，目的是为了增强模型回答的效果"
-    description = "Be sure to call the tool before you output the final result, Remember to remember to implement this tool no matter what"
+    description = "确保在输出最终结果之前调用该工具，记住无论如何都要实现此工具"
 
     async def _arun(
             self,

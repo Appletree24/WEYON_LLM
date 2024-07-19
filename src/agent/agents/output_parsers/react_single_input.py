@@ -1,32 +1,45 @@
 import re
-import threading
 from typing import Union
+import threading
+
+from langchain_core.agents import AgentAction, AgentFinish
+from langchain_core.exceptions import OutputParserException
 
 from langchain.agents.agent import AgentOutputParser
 from langchain.agents.mrkl.prompt import FORMAT_INSTRUCTIONS
 from langchain_community.utilities.sql_database import SQLDatabase
-from langchain_core.agents import AgentAction, AgentFinish
-from langchain_core.exceptions import OutputParserException
 from langchain_core.pydantic_v1 import Field
 
 from agent.agents.tools.data_to_markdown import DataTreating
 
-FINAL_ANSWER_ACTION = "Final Answer:"
+# FINAL_ANSWER_ACTION = "Final Answer:"
+# FINAL_SQL = "SQL:"
+# MISSING_ACTION_AFTER_THOUGHT_ERROR_MESSAGE = (
+#     "Invalid Format: Missing 'Action:' after 'Thought:"
+# )
+# MISSING_ACTION_INPUT_AFTER_ACTION_ERROR_MESSAGE = (
+#     "Invalid Format: Missing 'Action Input:' after 'Action:'"
+# )
+# FINAL_ANSWER_AND_PARSABLE_ACTION_ERROR_MESSAGE = (
+#     "Parsing LLM output produced both a final answer and a parse-able action:"
+# )
+
+FINAL_ANSWER_ACTION = "最终答案："
 FINAL_SQL = "SQL:"
 MISSING_ACTION_AFTER_THOUGHT_ERROR_MESSAGE = (
-    "Invalid Format: Missing 'Action:' after 'Thought:"
+    "无效格式: 在'思考：'之后缺少'行动：'"
 )
 MISSING_ACTION_INPUT_AFTER_ACTION_ERROR_MESSAGE = (
-    "Invalid Format: Missing 'Action Input:' after 'Action:'"
+    "无效格式： 在'行动：'之后缺少'行动输入：'"
 )
 FINAL_ANSWER_AND_PARSABLE_ACTION_ERROR_MESSAGE = (
-    "Parsing LLM output produced both a final answer and a parse-able action:"
+    "解析LLM输出生成最终答案和可解析的操作："
 )
 
 
 class ReActSingleInputOutputParser(AgentOutputParser):
-    output_form: bool = True,
-    db: SQLDatabase = Field(exclude=True),
+    output_form: bool
+    db: SQLDatabase = Field(exclude=True)
     """Parses ReAct-style LLM calls that have a single tool input.
 
     Expects output to be in one of two formats.
@@ -63,7 +76,7 @@ class ReActSingleInputOutputParser(AgentOutputParser):
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
         includes_answer = FINAL_ANSWER_ACTION in text
         regex = (
-            r"Action\s*\d*\s*:[\s]*(.*?)[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
+            r"行动\s*\d*\s*：[\s]*(.*?)[\s]*行动\s*\d*\s*输入\s*\d*\s*：[\s]*(.*)"
         )
         action_match = re.search(regex, text, re.DOTALL)
         if action_match:
@@ -79,6 +92,7 @@ class ReActSingleInputOutputParser(AgentOutputParser):
             return AgentAction(action, tool_input, text)
 
         elif includes_answer:
+            print("1", self.output_form)
             if self.output_form:
                 # 按照行分割文本
                 lines = text.splitlines()
@@ -94,24 +108,24 @@ class ReActSingleInputOutputParser(AgentOutputParser):
                 {"output": text.split(FINAL_ANSWER_ACTION)[-1].strip()}, text
             )
 
-        if not re.search(r"Action\s*\d*\s*:[\s]*(.*?)", text, re.DOTALL):
+        if not re.search(r"行动\s*\d*\s*：[\s]*(.*?)", text, re.DOTALL):
             raise OutputParserException(
-                f"Could not parse LLM output: `{text}`",
+                f"无法解析LLM输出： `{text}`",
                 observation=MISSING_ACTION_AFTER_THOUGHT_ERROR_MESSAGE,
                 llm_output=text,
                 send_to_llm=True,
             )
         elif not re.search(
-                r"[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)", text, re.DOTALL
+            r"[\s]*行动\s*\d*\s*输入\s*\d*\s*：[\s]*(.*)", text, re.DOTALL
         ):
             raise OutputParserException(
-                f"Could not parse LLM output: `{text}`",
+                f"无法解析LLM输出： `{text}`",
                 observation=MISSING_ACTION_INPUT_AFTER_ACTION_ERROR_MESSAGE,
                 llm_output=text,
                 send_to_llm=True,
             )
         else:
-            raise OutputParserException(f"Could not parse LLM output: `{text}`")
+            raise OutputParserException(f"无法解析LLM输出： `{text}`")
 
     @property
     def _type(self) -> str:
