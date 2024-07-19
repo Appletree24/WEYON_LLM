@@ -167,3 +167,4 @@ dataFiles/2023年/
 RAG/query_demo.ipynb
 .idea
 images
+*.db

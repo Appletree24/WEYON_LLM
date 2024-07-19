@@ -5,7 +5,6 @@
 import basic
 from logs import get_logger
 
-
 default_register = basic.default_context
 
 chain_logger = get_logger("chain")

@@ -27,5 +27,3 @@ def register(cls):
         embed_logger.error(f"Failed to register Embedding: {bean_name}", e)
         raise e
     return cls
-
-

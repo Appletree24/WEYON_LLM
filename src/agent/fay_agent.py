@@ -10,31 +10,26 @@
 
 import os
 
-from agent.tools.Analysis import Analysis
-
-from agent.core import content_db
-
-from langchain.agents import AgentExecutor, create_react_agent
-from agent.agents.agent import create_my_react_agent
-
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_community.utilities import SQLDatabase
-from langchain_community.callbacks import get_openai_callback
-
-from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_core.messages import HumanMessage, AIMessage
-
-from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate
-
-from qdrant_client import QdrantClient
+from langchain.agents import AgentExecutor
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain_community.callbacks import get_openai_callback
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.utilities import SQLDatabase
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
-from embedding.modelscope_embedding import ModelScopeEmbeddings
+from qdrant_client import QdrantClient
+
 import utils.config_util as utils
-from chains.profile_query import profile_query
+from agent.agents.agent import create_my_react_agent
+from agent.core import content_db
+from agent.globalData import globalData  # 引入全局数据管理
+from agent.tools.Analysis import Analysis
 from basic import default_context
-from agent.globalData import globalData # 引入全局数据管理
+from chains.profile_query import profile_query
+from embedding.modelscope_embedding import ModelScopeEmbeddings
 
 _ = profile_query
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

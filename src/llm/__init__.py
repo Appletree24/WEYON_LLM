@@ -5,7 +5,6 @@
 import basic
 from logs import get_logger
 
-
 default_register = basic.default_context
 
 llm_logger = get_logger("llm")

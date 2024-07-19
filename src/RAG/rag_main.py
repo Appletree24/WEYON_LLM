@@ -11,10 +11,9 @@
 
 from typing import List
 
+from langchain.chains.retrieval_qa.base import RetrievalQA, BaseRetrievalQA
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers import ParentDocumentRetriever
 from langchain.retrievers.document_compressors.base import DocumentCompressorPipeline
-from langchain.retrievers.document_compressors.chain_extract import LLMChainExtractor
 from langchain.retrievers.document_compressors.embeddings_filter import EmbeddingsFilter
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import Docx2txtLoader
@@ -22,15 +21,12 @@ from langchain_community.document_transformers import EmbeddingsRedundantFilter
 # from qdrant_client.http.exceptions import UnexpectedResponse as NOTFOUND_COLLECTION
 from langchain_community.document_transformers.long_context_reorder import LongContextReorder
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.storage import MongoDBStore
 from langchain_core.retrievers import BaseRetriever
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient, models
-from langchain.chains.retrieval_qa.base import RetrievalQA, BaseRetrievalQA
-from langchain_community.storage import MongoDBStore
-from langchain_nomic import NomicEmbeddings
 
-from utils.Files_util import get_docxs_without_splitter
 
 # TODO 分块要进一步进行优化，现在很多问题都查不出来(甚至不是图表当中的信息)
 
@@ -94,7 +90,7 @@ class RagMain():
                               api_key=openai_api_key, base_url=openai_api_base, streaming=True,
                               verbose=verbose)
         mongodb_store = MongoDBStore(
-           self.mongo_conn_str, db_name="ai_use", collection_name=collection_name
+            self.mongo_conn_str, db_name="ai_use", collection_name=collection_name
         )
         if files_path == "":
             raise ValueError("files_path is Empty")
@@ -112,23 +108,23 @@ class RagMain():
             collection_name=collection_name,
             url="http://192.168.100.111:6333",
         )
-        #qdrant_child = Qdrant(
+        # qdrant_child = Qdrant(
         #   self.qdrant_client,
         #   collection_name=collection_name,
         #   embeddings=self.embeddings_bge
-        #)
-        #parent_retriever = ParentDocumentRetriever(
+        # )
+        # parent_retriever = ParentDocumentRetriever(
         #   parent_splitter=self.parent_splitter,
         #   child_splitter=self.child_splitter,
         #   vectorstore=qdrant_child,
         #   docstore=mongodb_store,
-        #)
+        # )
 
-        #docxs = get_docxs_without_splitter(files_path=files_path)
+        # docxs = get_docxs_without_splitter(files_path=files_path)
 
-        #qdrant_child.add_documents(docxs)
+        # qdrant_child.add_documents(docxs)
 
-        #parent_retriever.add_documents(docxs)
+        # parent_retriever.add_documents(docxs)
 
         redundant_filter = EmbeddingsRedundantFilter(
             embeddings=self.embeddings_jina)
@@ -138,7 +134,7 @@ class RagMain():
 
         reorder = LongContextReorder()
 
-        #compressor = LLMChainExtractor.from_llm(self.llm)
+        # compressor = LLMChainExtractor.from_llm(self.llm)
 
         pipeline = DocumentCompressorPipeline(
             transformers=[relevant_filter, redundant_filter, reorder]

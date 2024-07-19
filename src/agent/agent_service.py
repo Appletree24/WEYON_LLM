@@ -1,8 +1,9 @@
+import datetime
+import os
 import sqlite3
 import threading
-import datetime
 import time
-import os
+
 from agent.fay_agent import FayAgentCore
 
 scheduled_tasks = {}
@@ -25,15 +26,16 @@ def init_db():
     conn.commit()
     conn.close()
 
-    
 
 # 插入测试数据
 def insert_test_data():
     conn = sqlite3.connect('timer.db')
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO timer (time, repeat_rule, content) VALUES (?, ?, ?)", ('16:20', '1010001', 'Meeting Reminder'))
+    cursor.execute("INSERT INTO timer (time, repeat_rule, content) VALUES (?, ?, ?)",
+                   ('16:20', '1010001', 'Meeting Reminder'))
     conn.commit()
     conn.close()
+
 
 # 解析重复规则返回待执行时间，None代表不在今天的待执行计划
 def parse_repeat_rule(rule, task_time):
@@ -51,6 +53,7 @@ def parse_repeat_rule(rule, task_time):
                 return task_datetime
     return None
 
+
 # 执行任务
 def execute_task(task_time, id, content):
     agent.is_chat = False
@@ -60,7 +63,8 @@ def execute_task(task_time, id, content):
     # 如果不重复，执行后删除记录
     conn = sqlite3.connect('timer.db')
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM timer WHERE repeat_rule = '0000000' AND time = ? AND content = ?", (task_time.strftime('%H:%M'), content))
+    cursor.execute("DELETE FROM timer WHERE repeat_rule = '0000000' AND time = ? AND content = ?",
+                   (task_time.strftime('%H:%M'), content))
     conn.commit()
     conn.close()
 
@@ -79,20 +83,22 @@ def check_and_execute():
             next_execution = parse_repeat_rule(repeat_rule, task_time)
 
             if next_execution and id not in scheduled_tasks:
-                timer_thread = threading.Timer((next_execution - datetime.datetime.now()).total_seconds(), execute_task, [next_execution, id, content])
+                timer_thread = threading.Timer((next_execution - datetime.datetime.now()).total_seconds(), execute_task,
+                                               [next_execution, id, content])
                 timer_thread.start()
                 scheduled_tasks[id] = timer_thread
 
         conn.close()
         time.sleep(30)  # 30秒扫描一次
 
+
 # agent启动
 def agent_start():
     global agent_running
     global agent
-    
+
     agent_running = True
-    #初始计划
+    # 初始计划
     if not os.path.exists("./timer.db"):
         init_db()
         fay_core.send_for_answer("""执行任务->
@@ -105,17 +111,16 @@ def agent_start():
     check_and_execute_thread = threading.Thread(target=check_and_execute)
     check_and_execute_thread.start()
 
-    
 
 def agent_stop():
-    global agent_running 
+    global agent_running
     global scheduled_tasks
     # 取消所有定时任务
     for task in scheduled_tasks.values():
         task.cancel()
     agent_running = False
     scheduled_tasks = {}
-    
+
 
 if __name__ == "__main__":
     agent_start()
