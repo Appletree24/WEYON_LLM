@@ -50,7 +50,7 @@ class FayAgentCore:
         qdrant = Qdrant(
             qdrant_client, collection_name="csv_sql_dim_1024", embeddings=embeddings
         )
-        self.qdrant_retriever = qdrant.as_retriever(search_kwargs={"k": 3})
+        self.qdrant_retriever = qdrant.as_retriever(search_kwargs={"k": 1})
 
         utils.load_config()
         if str(utils.tavily_api_key) != '':
@@ -60,7 +60,7 @@ class FayAgentCore:
         # 创建llm
         self.llm = ChatOpenAI(model=utils.gpt_model_engine)
         # 是否输出表格
-        self.output_from = False
+        self.output_form = False
         # 保存基本信息到记忆
         utils.load_config()
         # 内存保存聊天历史
@@ -125,7 +125,7 @@ class FayAgentCore:
             )
 
             # agent = create_react_agent(self.llm, self.tools, prompt)
-            agent = create_my_react_agent(self.llm, self.tools, prompt, output_from=self.output_from, db=self.db)
+            agent = create_my_react_agent(self.llm, self.tools, prompt, output_form=self.output_form, db=self.db)
             # 通过传入agent和tools来创建一个agent executor
             self.agent = AgentExecutor(
                 agent=agent,
@@ -154,16 +154,18 @@ class FayAgentCore:
         result = ""
         re = ""
         try:
-            input_text = input_text.replace(
-                '主人语音说了：', '').replace('主人文字说了：', '')
-            RAG_ENHANCE_PROMPT = str(retriever.invoke(input_text))
-            input_text = input_text + RAG_ENHANCE_PROMPT
+            profile_chain = default_context.get_bean("profile_query")
+            res = profile_chain.invoke({"question": input_text, "chat_history": self.chat_history})
+            input_text = res['profile_query'][0].split('：')[1]
+            print(input_text)
+
             with get_openai_callback() as cb:
                 # result = self.agent.run(agent_prompt)
-                profile_chain = default_context.get_bean("profile_query")
-                res = profile_chain.invoke({"question": input_text, "chat_history": " "})
-                input_text = res['profile_query'][0].split('：')[1]
-                print(input_text)
+                input_text = input_text.replace(
+                    '主人语音说了：', '').replace('主人文字说了：', '')
+                # RAG_ENHANCE_PROMPT = str(retriever.invoke(input_text))
+                # input_text = input_text + RAG_ENHANCE_PROMPT
+                # print(input_text)
                 result = self.agent.invoke(
                     {"input": input_text, "chat_history": self.chat_history})
                 # print(result)
@@ -173,7 +175,7 @@ class FayAgentCore:
             print("错误", e)
 
         chat_text = re
-        if self.output_from and globalData.get_value('markdown_table') != ' ':
+        if self.output_form and globalData.get_value('markdown_table') != ' ':
             chat_text = globalData.get_value('markdown_table')
             globalData.set_value('markdown_table', ' ')
         # 保存聊天对话

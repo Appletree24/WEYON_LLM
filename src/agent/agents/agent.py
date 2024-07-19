@@ -24,7 +24,7 @@ def create_my_react_agent(
     tools_renderer: ToolsRenderer = render_text_description,
     *,
     stop_sequence: Union[bool, List[str]] = True,
-    output_from: bool = True,
+    output_form: bool,
     db: SQLDatabase = Field(exclude=True),
 ) -> Runnable:
     """Create an agent that uses ReAct prompting.
@@ -46,7 +46,8 @@ def create_my_react_agent(
 
             Default is True. You may to set this to False if the LLM you are using
             does not support stop sequences.
-
+        output_form: bool
+        db: SQLDatabase = Field(exclude=True)
     Returns:
         A Runnable sequence representing an agent. It takes as input all the same input
         variables as the prompt passed in does. It returns as output either an
@@ -126,11 +127,12 @@ def create_my_react_agent(
         tool_names=", ".join([t.name for t in tools]),
     )
     if stop_sequence:
-        stop = ["\nObservation"] if stop_sequence is True else stop_sequence
+        stop = ["\n观察"] if stop_sequence is True else stop_sequence
         llm_with_stop = llm.bind(stop=stop)
     else:
         llm_with_stop = llm
-    output_parser = output_parser or ReActSingleInputOutputParser(output_from=output_from, db=db)
+    ReActParser = ReActSingleInputOutputParser(output_form=output_form, db=db)
+    output_parser = output_parser or ReActParser
     agent = (
         RunnablePassthrough.assign(
             agent_scratchpad=lambda x: format_log_to_str(x["intermediate_steps"]),
