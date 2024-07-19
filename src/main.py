@@ -4,9 +4,9 @@
 from langchain_core.runnables import Runnable
 
 import logs
+from agent.fay_agent import FayAgentCore
 from basic import default_context
 from chains import simple_chain, profile_query
-from agent.fay_agent import FayAgentCore
 
 _ = simple_chain, profile_query
 
@@ -14,7 +14,8 @@ _ = simple_chain, profile_query
 def history_chat_build(history):
     # 历史对话总是从用户开始，然后机器人
     history_msg = []
-    for i, (user_message, bot_message) in enumerate(history):
+    remember_history = -default_context['remember_history']
+    for i, (user_message, bot_message) in enumerate(history[history_msg:]):
         if isinstance(user_message, list):
             user_message = "".join(user_message)
         history_msg.append(('user', user_message))
@@ -52,10 +53,9 @@ def simple_chat(message, history):
     history_msg = history_chat_build(history)
     partial_message = ""
     logs.get_logger('chat').debug(history_msg)
-    for chunk in chain.stream([history_msg , message]):
+    for chunk in chain.stream([history_msg, message]):
         partial_message = partial_message + chunk.content
         yield partial_message
-
 
 
 agent = FayAgentCore()

@@ -2,30 +2,30 @@ from __future__ import annotations
 
 from typing import List, Optional, Sequence, Union
 
-from langchain_core.language_models import BaseLanguageModel
-from langchain_core.prompts import BasePromptTemplate
-from langchain_core.runnables import Runnable, RunnablePassthrough
-from langchain_core.tools import BaseTool
-
 from langchain.agents import AgentOutputParser
 from langchain.agents.format_scratchpad import format_log_to_str
 # from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.tools.render import ToolsRenderer, render_text_description
 from langchain_community.utilities.sql_database import SQLDatabase
+from langchain_core.language_models import BaseLanguageModel
+from langchain_core.prompts import BasePromptTemplate
 from langchain_core.pydantic_v1 import Field
+from langchain_core.runnables import Runnable, RunnablePassthrough
+from langchain_core.tools import BaseTool
+
 from agent.agents.output_parsers import ReActSingleInputOutputParser
 
 
 def create_my_react_agent(
-    llm: BaseLanguageModel,
-    tools: Sequence[BaseTool],
-    prompt: BasePromptTemplate,
-    output_parser: Optional[AgentOutputParser] = None,
-    tools_renderer: ToolsRenderer = render_text_description,
-    *,
-    stop_sequence: Union[bool, List[str]] = True,
-    output_from: bool = True,
-    db: SQLDatabase = Field(exclude=True),
+        llm: BaseLanguageModel,
+        tools: Sequence[BaseTool],
+        prompt: BasePromptTemplate,
+        output_parser: Optional[AgentOutputParser] = None,
+        tools_renderer: ToolsRenderer = render_text_description,
+        *,
+        stop_sequence: Union[bool, List[str]] = True,
+        output_from: bool = True,
+        db: SQLDatabase = Field(exclude=True),
 ) -> Runnable:
     """Create an agent that uses ReAct prompting.
 
@@ -132,11 +132,11 @@ def create_my_react_agent(
         llm_with_stop = llm
     output_parser = output_parser or ReActSingleInputOutputParser(output_from=output_from, db=db)
     agent = (
-        RunnablePassthrough.assign(
-            agent_scratchpad=lambda x: format_log_to_str(x["intermediate_steps"]),
-        )
-        | prompt
-        | llm_with_stop
-        | output_parser
+            RunnablePassthrough.assign(
+                agent_scratchpad=lambda x: format_log_to_str(x["intermediate_steps"]),
+            )
+            | prompt
+            | llm_with_stop
+            | output_parser
     )
     return agent

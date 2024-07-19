@@ -1,6 +1,9 @@
 import os
+
 from langchain_openai import ChatOpenAI
+
 import utils.config_util as utils
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 utils.load_config()

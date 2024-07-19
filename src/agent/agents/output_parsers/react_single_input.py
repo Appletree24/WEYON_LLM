@@ -1,13 +1,12 @@
 import re
-from typing import Union
 import threading
-
-from langchain_core.agents import AgentAction, AgentFinish
-from langchain_core.exceptions import OutputParserException
+from typing import Union
 
 from langchain.agents.agent import AgentOutputParser
 from langchain.agents.mrkl.prompt import FORMAT_INSTRUCTIONS
 from langchain_community.utilities.sql_database import SQLDatabase
+from langchain_core.agents import AgentAction, AgentFinish
+from langchain_core.exceptions import OutputParserException
 from langchain_core.pydantic_v1 import Field
 
 from agent.agents.tools.data_to_markdown import DataTreating
@@ -52,6 +51,7 @@ class ReActSingleInputOutputParser(AgentOutputParser):
     ```
 
     """
+
     class Config:
         """Configuration for this pydantic object."""
 
@@ -102,7 +102,7 @@ class ReActSingleInputOutputParser(AgentOutputParser):
                 send_to_llm=True,
             )
         elif not re.search(
-            r"[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)", text, re.DOTALL
+                r"[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)", text, re.DOTALL
         ):
             raise OutputParserException(
                 f"Could not parse LLM output: `{text}`",
