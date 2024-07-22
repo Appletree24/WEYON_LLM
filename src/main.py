@@ -14,6 +14,7 @@ _ = simple_chain, profile_query
 def history_chat_build(history):
     # 历史对话总是从用户开始，然后机器人
     history_msg = []
+    history = history[-default_context['remember_history']:]
     for i, (user_message, bot_message) in enumerate(history):
         if isinstance(user_message, list):
             user_message = "".join(user_message)
@@ -96,7 +97,7 @@ if __name__ == "__main__":
 
     app = FastAPI()
     gr.mount_gradio_app(app, rag_interface, path="/rag")
-    gr.mount_gradio_app(app, profile_interface, path="/pro/rag/")
+    gr.mount_gradio_app(app, profile_interface, path="/pro/")
     gr.mount_gradio_app(app, chat_interface, path="/chat")
     gr.mount_gradio_app(app, agent_interface, path="/agent")
     import uvicorn
