@@ -25,6 +25,22 @@ def history_chat_build(history):
     return history_msg
 
 
+def profile_rag_msg(message, history):
+    history_msg = history_chat_build(history)
+    pro_chain: Runnable = default_context['profile_query']
+    res = pro_chain.invoke({'chat_history': history_msg, 'question': message})
+    partial_message = ""
+    if res['keywords']:
+        tips = f"> 🤗关键词 : **{res['keywords']}**\n\n"
+        partial_message += tips
+        yield partial_message
+    retriever_chain: Runnable = default_context['retriever_chain']
+
+    for chunk in retriever_chain.stream(res):
+        partial_message += chunk.content
+        yield partial_message
+
+
 def profile_rag(message, history):
     chain: Runnable = default_context['profile_query_rag']
     history_msg = history_chat_build(history)
@@ -73,14 +89,14 @@ import gradio as gr
 
 if __name__ == "__main__":
     rag_interface = gr.ChatInterface(simple_rag, title=f"{company_name} Rag", concurrency_limit=con_limit)
-    profile_interface = gr.ChatInterface(profile_rag, title=f"{company_name} Rag Pro", concurrency_limit=con_limit)
+    profile_interface = gr.ChatInterface(profile_rag_msg, title=f"{company_name} Rag Pro", concurrency_limit=con_limit)
     chat_interface = gr.ChatInterface(simple_chat, title=f"{company_name} Chat", concurrency_limit=con_limit)
     agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} agent", concurrency_limit=con_limit)
     from fastapi import FastAPI
 
     app = FastAPI()
     gr.mount_gradio_app(app, rag_interface, path="/rag")
-    gr.mount_gradio_app(app, profile_interface, path="/rag/pro")
+    gr.mount_gradio_app(app, profile_interface, path="/pro/rag/")
     gr.mount_gradio_app(app, chat_interface, path="/chat")
     gr.mount_gradio_app(app, agent_interface, path="/agent")
     import uvicorn

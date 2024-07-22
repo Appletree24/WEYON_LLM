@@ -95,3 +95,34 @@ def profile_query_rag(ServeChatModel, profile_query, qdrant_retriever):
 
     return (profile_query | RunnableLambda(retriever) |
             RunnableLambda(log) | prompt | ServeChatModel)
+
+
+@chains.register
+def retriever_chain(ServeChatModel, qdrant_retriever):
+    prompt = ChatPromptTemplate.from_template(
+        """
+        ## 指令：
+        你是一位湘潭大学招生办的老师，你的任务是尽你所能回答学生或者家长的问题。下面是用户的问题以及我帮你整理好的相关资料。可以用作参考。
+        请一定要符合事实。联想词可以用来参考，但是一定以关键词为主。尽量简明的给出答案，分点作答。
+
+        ## 相关资料：
+        {context}
+
+        ## 优化后的用户输入：
+        {profile}
+
+        """
+    )
+
+    def log(p):
+        logger.debug(p)
+        return p
+
+    def retriever(p):
+        res = p.copy()
+        # 仅用关键词从向量数据库中查询数据
+        res['context'] = qdrant_retriever.invoke(str(p['extra_keywords']))
+        return res
+
+    return (RunnableLambda(retriever) |
+            RunnableLambda(log) | prompt | ServeChatModel)

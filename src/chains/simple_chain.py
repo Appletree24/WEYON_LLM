@@ -10,7 +10,7 @@ _ = chat_openai, qdrant_retriever
 
 logger = get_logger('simple_chain')
 
-sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上下文中的信息，来对用户提出的问题进行回答。回答请尽量简洁明确并分条表述，避免不需要的信息，也不要编造事实。"
+sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上下文中的信息，来对用户提出的问题进行回答。回答请尽量分条表述，避免不需要的信息，也不要编造事实。"
 
 
 @chains.register
