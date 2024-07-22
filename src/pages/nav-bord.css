@@ -1,0 +1,98 @@
+:root {
+    --color: #0ebeff;
+}
+
+
+.nav-item {
+    align-content: center;
+}
+
+
+.nav-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.nav-description {
+    font-style: italic;
+    margin-top: 10px;
+}
+
+@keyframes rotate {
+    100% {
+        transform: translate(-50%, -50%) rotate(1turn);
+    }
+}
+
+.nav-box {
+    background-color: #ba3b0c;
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    box-shadow: 0 8px 16px rgb(90, 32, 13); /* 添加阴影效果 */
+    transition: box-shadow 0.3s ease-in-out; /* 平滑过渡效果 */
+}
+
+.nav-box {
+    position: relative;
+    z-index: 0;
+    width: 230px;
+    height: 120px;
+    line-height: 80px;
+    border-radius: 10px;
+    margin: 30px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: .3s;
+    -webkit-box-reflect: below 10px linear-gradient(transparent, rgb(0, 0, 0));
+
+    &:hover {
+        color: #fff;
+        box-shadow: 0 0 5px var(--color),
+        0 0 25px var(--color);
+
+        &::after,
+        &::before {
+            transition: .3s;
+            background: var(--color);
+        }
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        z-index: -2;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 150%;
+        height: 300%;
+        background-color: #000;
+        background-repeat: no-repeat;
+        background-size: 50% 50%;
+        background-position: 0 0;
+        background-image: conic-gradient(var(--color), var(--color));
+        animation: rotate 2s linear infinite;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        left: 2px;
+        top: 2px;
+        width: calc(100% - 4px);
+        height: calc(100% - 4px);
+        background: #ba3b0c;
+        border-radius: 10px;
+    }
+}
+
+.nav-description {
+    margin: 2px;
+}
+
+.nav-box {
+    filter: hue-rotate(180deg);
+}
