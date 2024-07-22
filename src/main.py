@@ -2,6 +2,7 @@
 启动入口
 """
 from langchain_core.runnables import Runnable
+from starlette.staticfiles import StaticFiles
 
 import logs
 from agent.fay_agent import FayAgentCore
@@ -89,17 +90,26 @@ con_limit = 20
 import gradio as gr
 
 if __name__ == "__main__":
-    rag_interface = gr.ChatInterface(simple_rag, title=f"{company_name} Rag", concurrency_limit=con_limit)
-    profile_interface = gr.ChatInterface(profile_rag_msg, title=f"{company_name} Rag Pro", concurrency_limit=con_limit)
-    chat_interface = gr.ChatInterface(simple_chat, title=f"{company_name} Chat", concurrency_limit=con_limit)
-    agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} agent", concurrency_limit=con_limit)
+    rag_interface = gr.ChatInterface(simple_rag, title=f"{company_name} Question Rag", concurrency_limit=con_limit,
+                                     description=f"{company_name} 基于问题检索对话")
+    profile_interface = gr.ChatInterface(profile_rag_msg, title=f"{company_name} Keywords Rag",
+                                         concurrency_limit=con_limit,
+                                         description=f"{company_name} 基于关键词检索")
+    chat_interface = gr.ChatInterface(simple_chat, title=f"{company_name} Chat", concurrency_limit=con_limit,
+                                      description=f"{company_name} 直接与模型对话")
+    agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} Agent", concurrency_limit=con_limit,
+                                       description=f"{company_name} 查询数据库的智能体")
+
     from fastapi import FastAPI
 
     app = FastAPI()
     gr.mount_gradio_app(app, rag_interface, path="/rag")
-    gr.mount_gradio_app(app, profile_interface, path="/pro/")
+    gr.mount_gradio_app(app, profile_interface, path="/profile/")
     gr.mount_gradio_app(app, chat_interface, path="/chat")
     gr.mount_gradio_app(app, agent_interface, path="/agent")
+
+    app.mount("/", StaticFiles(directory="./pages", html=True), name="pages")
+
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    uvicorn.run(app, host="0.0.0.0", port=7861)
