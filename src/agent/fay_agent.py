@@ -33,7 +33,7 @@ from basic import default_context
 from chains.profile_query import profile_query
 from embedding.modelscope_embedding import ModelScopeEmbeddings
 
-_ = profile_query
+_ = profile_query, hub, create_react_agent
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -58,6 +58,7 @@ class FayAgentCore:
         self.llm = ChatOpenAI(model=utils.gpt_model_engine)
         # 是否输出表格
         self.output_form = False
+
         # 保存基本信息到记忆
         utils.load_config()
         # 内存保存聊天历史
@@ -101,11 +102,11 @@ class FayAgentCore:
 
         # 创建agent chain
         analysis_description = (
-            "确保在输出最终结果之前调用该工具，记住无论如何都要实现此工具")
+            "确保在输出最终结果之前调用该工具，记住无论如何都要调用此工具")
         analysis = Analysis(name="Analysis",
                             description=analysis_description)
         csv_example_description = (
-            "当确定进行sql查询时，应调用此工具进行向量数据库检索，查询相关样例以辅助模型生成")
+            "当需要进行SQL查询时，务必调用此工具进行向量数据库检索。工具将查询相关的样例数据，以辅助模型生成准确的SQL查询。此工具特别适用于需要从数据库中提取信息并进行复杂查询的场景。")
         csv_example = CsvExample(name="csv_example",
                                  description=csv_example_description,
                                  qdrant_retriever=self.qdrant_retriever)
