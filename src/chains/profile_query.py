@@ -22,6 +22,7 @@ def profile_query(ServeChatModel):
         ## 指令：
         请优化用户的输入，简称变成正式的全称，错别字修正。将优化后的结果输出。然后提取其中的关键词。
         可以适当的联想和扩充，但一定要符合原文主旨。你可以正确的关联的历史对话，从历史对话中提取出有用的信息辅助回答问题。
+        如果你无法理解用户的问题，请直接返回“我无法理解您的意思”，并且根据历史对话猜测用户可能问的问题。
         当理解上出现模棱两可时，尽可能向教育、大学、职业发展规划等方向倾斜。
 
         ## 格式： 
@@ -52,8 +53,9 @@ def profile_query(ServeChatModel):
         def extra_with(li, start):
             return [i for i in li if i.strip().startswith(start)]
 
+        res['stop'] = '我无法理解您的意思' in p.content
         pros = p.content.splitlines()
-        res['profile'] = p.content
+        res['profile'] = pros
         res['keywords'] = extra_with(pros, '关键词：')
         res['extra_keywords'] = extra_with(pros, '联想关键词：')
         res['profile_query'] = extra_with(pros, '优化后的输入：')

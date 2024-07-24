@@ -12,9 +12,10 @@ remember_history: 8
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
-  collection_name: "test_local"
+  collection_name: "word_reader_test_1024"
 retriever_config:
-  top_k: 3
+  k: 15
+  score_threshold: 0.65
 modelscope_embeddings_model_id: iic/nlp_gte_sentence-embedding_chinese-base
 xinference_embedding_config:
   server_url: "http://192.168.100.111:9997"

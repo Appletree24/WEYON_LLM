@@ -31,16 +31,19 @@ def profile_rag_msg(message, history):
     history_msg = history_chat_build(history)
     pro_chain: Runnable = default_context['profile_query']
     res = pro_chain.invoke({'chat_history': history_msg, 'question': message})
-    partial_message = ""
-    if res['keywords']:
-        tips = f"> 🤗关键词 : **{res['keywords']}**\n\n"
-        partial_message += tips
-        yield partial_message
-    retriever_chain: Runnable = default_context['retriever_chain']
+    if res['stop']:
+        yield res['profile']
+    else:
+        partial_message = ""
+        if res['keywords']:
+            tips = f"> 🤗关键词 : **{res['keywords']}**\n\n"
+            partial_message += tips
+            yield partial_message
+        retriever_chain: Runnable = default_context['retriever_chain']
 
-    for chunk in retriever_chain.stream(res):
-        partial_message += chunk.content
-        yield partial_message
+        for chunk in retriever_chain.stream(res):
+            partial_message += chunk.content
+            yield partial_message
 
 
 def profile_rag(message, history):
@@ -113,3 +116,4 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=7860)
+
