@@ -10,9 +10,10 @@ _ = qdrant
 
 
 @retriever.register
-def qdrant_retriever(QdrantVectorStore: qdrant.QdrantVectorStore) -> RunnableSerializable[str, list[Document]]:
+def qdrant_retriever(QdrantVectorStore: qdrant.QdrantVectorStore, retriever_config) -> RunnableSerializable[
+    str, list[Document]]:
     return (QdrantVectorStore
-            .as_retriever(search_type="similarity", search_kwargs={"k": 1})
+            .as_retriever(search_type="similarity", search_kwargs=retriever_config)
             .configurable_fields(search_kwargs=ConfigurableField(id="search_kwargs_qdrant",
                                                                  name="Search Kwargs",
                                                                  description="The search kwargs to use"
