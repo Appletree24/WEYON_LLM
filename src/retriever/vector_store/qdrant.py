@@ -1,13 +1,9 @@
 from typing import Dict
 
-from langchain_qdrant import Qdrant
-from retriever import vector_store
-
-# from embedding import modelscope_embedding
-
 from langchain_community.embeddings import XinferenceEmbeddings
+from langchain_qdrant import Qdrant
 
-# _ = modelscope_embedding
+from retriever import vector_store
 
 
 @vector_store.register

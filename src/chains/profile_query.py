@@ -7,9 +7,9 @@ from langchain_core.runnables import RunnableLambda
 import chains
 from llm import chat_openai
 from logs import get_logger
-from retriever import qdrant_retriever
+from retriever import qdrant_retriever, doc_retriever
 
-_ = chat_openai, qdrant_retriever
+_ = chat_openai, qdrant_retriever, doc_retriever
 
 sys_prompt = ""
 logger = get_logger('profile_query')
@@ -90,7 +90,7 @@ qa_prompt = ChatPromptTemplate.from_template(
 
 
 @chains.register
-def profile_query_rag(ServeChatModel, profile_query, qdrant_retriever):
+def profile_query_rag(ServeChatModel, profile_query, DocRetriever):
     prompt = qa_prompt
 
     def log(p):
@@ -100,7 +100,7 @@ def profile_query_rag(ServeChatModel, profile_query, qdrant_retriever):
     def retriever(p):
         res = p.copy()
         # 仅用关键词从向量数据库中查询数据
-        res['context'] = qdrant_retriever.invoke(str(p['extra_keywords']))
+        res['context'] = DocRetriever.invoke(str(p['extra_keywords']))
         return res
 
     return (profile_query | RunnableLambda(retriever) |
@@ -108,7 +108,7 @@ def profile_query_rag(ServeChatModel, profile_query, qdrant_retriever):
 
 
 @chains.register
-def retriever_chain(ServeChatModel, qdrant_retriever):
+def retriever_chain(ServeChatModel, DocRetriever):
     prompt = qa_prompt
 
     def log(p):
@@ -118,7 +118,7 @@ def retriever_chain(ServeChatModel, qdrant_retriever):
     def retriever(p):
         res = p.copy()
         # 仅用关键词从向量数据库中查询数据
-        res['context'] = qdrant_retriever.invoke(str(p['extra_keywords']))
+        res['context'] = DocRetriever.invoke(str(p['extra_keywords']))
         return res
 
     return (RunnableLambda(retriever) |
