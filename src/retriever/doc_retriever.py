@@ -3,7 +3,7 @@ from typing import List
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from qdrant_openapi_client.models import models
+from qdrant_client.models import models
 
 import retriever
 from embedding import modelscope_embedding
