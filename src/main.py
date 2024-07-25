@@ -86,6 +86,14 @@ def simple_agent(message, history):
     return agent.run(user_input, agent.qdrant_retriever)[1]
 
 
+def retriever_test(message, history):
+    retriever = default_context['DocRetriever']
+    re = retriever.invoke(message)
+    res = '\n'.join([doc.page_content for doc in re])
+    msg = f'# 🤗【{message}】的检索结果\n\n' + res
+    return msg
+
+
 # 公司名称
 company_name = "WeYon"
 con_limit = 20
@@ -102,6 +110,11 @@ if __name__ == "__main__":
                                       description=f"{company_name} 直接与模型对话")
     agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} Agent", concurrency_limit=con_limit,
                                        description=f"{company_name} 查询数据库的智能体")
+    # markdown形式输出output
+
+    retriever_test_interface = gr.ChatInterface(fn=retriever_test,
+                                                title=f"{company_name} Retriever命中率测试",
+                                                description="用来测试Retriever命中率，生产环境记得关闭！！当前测试对象为DocRetriever")
 
     from fastapi import FastAPI
 
@@ -110,10 +123,10 @@ if __name__ == "__main__":
     gr.mount_gradio_app(app, profile_interface, path="/profile/")
     gr.mount_gradio_app(app, chat_interface, path="/chat")
     gr.mount_gradio_app(app, agent_interface, path="/agent")
+    gr.mount_gradio_app(app, retriever_test_interface, path="/retriever")
 
     app.mount("/", StaticFiles(directory="./pages", html=True), name="pages")
 
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=7860)
-
