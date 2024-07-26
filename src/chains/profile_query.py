@@ -5,6 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda
 
 import chains
+from chains.common import global_data
 from llm import chat_openai
 from logs import get_logger
 from retriever import qdrant_retriever, doc_retriever
@@ -13,6 +14,26 @@ _ = chat_openai, qdrant_retriever, doc_retriever
 
 sys_prompt = ""
 logger = get_logger('profile_query')
+
+
+def log(p):
+    logger.debug(p)
+    return p
+
+
+def extra_keywords(p):
+    res = {}
+
+    def extra_with(li, start):
+        return [i for i in li if i.strip().startswith(start)]
+
+    res['stop'] = '我无法理解您的意思' in p.content
+    pros = p.content.splitlines()
+    res['profile'] = pros
+    res['keywords'] = extra_with(pros, '关键词：')
+    res['extra_keywords'] = extra_with(pros, '联想关键词：')
+    res['profile_query'] = extra_with(pros, '优化后的输入：')
+    return res
 
 
 @chains.register
@@ -24,6 +45,9 @@ def profile_query(ServeChatModel):
         可以适当的联想和扩充，但一定要符合原文主旨。你可以正确的关联的历史对话，从历史对话中提取出有用的信息辅助回答问题。
         如果你无法理解用户的问题，请直接返回“我无法理解您的意思”，并且根据历史对话猜测用户可能问的问题。
         当理解上出现模棱两可时，尽可能向教育、大学、职业发展规划等方向倾斜。
+        
+        ## 背景：
+        今天是{date}，星期{week}
 
         ## 格式： 
         优化后的输入：XXX。
@@ -42,26 +66,8 @@ def profile_query(ServeChatModel):
 
         """
     )
-
-    def log(p):
-        logger.debug(p)
-        return p
-
-    def extra_keywords(p):
-        res = {}
-
-        def extra_with(li, start):
-            return [i for i in li if i.strip().startswith(start)]
-
-        res['stop'] = '我无法理解您的意思' in p.content
-        pros = p.content.splitlines()
-        res['profile'] = pros
-        res['keywords'] = extra_with(pros, '关键词：')
-        res['extra_keywords'] = extra_with(pros, '联想关键词：')
-        res['profile_query'] = extra_with(pros, '优化后的输入：')
-        return res
-
-    profile_query_chain = (prompt
+    profile_query_chain = (global_data
+                           | prompt
                            | RunnableLambda(log)
                            | ServeChatModel
                            | RunnableLambda(extra_keywords))
@@ -77,7 +83,9 @@ qa_prompt = ChatPromptTemplate.from_template(
     
     ## 输出格式：
     如果用户没有指定格式，请用markdown的形式回答，回答形式多样化，例如使用表格、列表等。
-
+    
+    ## 背景：
+    今天是{date}
 
     ## 相关资料：
     {context}
@@ -93,33 +101,33 @@ qa_prompt = ChatPromptTemplate.from_template(
 def profile_query_rag(ServeChatModel, profile_query, DocRetriever):
     prompt = qa_prompt
 
-    def log(p):
-        logger.debug(p)
-        return p
-
     def retriever(p):
         res = p.copy()
         # 仅用关键词从向量数据库中查询数据
-        res['context'] = DocRetriever.invoke(str(p['extra_keywords']))
+        res['context'] = DocRetriever.invoke(str(p['keywords']))
         return res
 
-    return (profile_query | RunnableLambda(retriever) |
-            RunnableLambda(log) | prompt | ServeChatModel)
+    return (global_data
+            | profile_query
+            | global_data
+            | RunnableLambda(retriever)
+            | RunnableLambda(log)
+            | prompt
+            | ServeChatModel)
 
 
 @chains.register
 def retriever_chain(ServeChatModel, DocRetriever):
     prompt = qa_prompt
 
-    def log(p):
-        logger.debug(p)
-        return p
-
     def retriever(p):
         res = p.copy()
         # 仅用关键词从向量数据库中查询数据
-        res['context'] = DocRetriever.invoke(str(p['extra_keywords']))
+        res['context'] = DocRetriever.invoke(str(p['profile']))
         return res
 
-    return (RunnableLambda(retriever) |
-            RunnableLambda(log) | prompt | ServeChatModel)
+    return (global_data
+            | RunnableLambda(retriever)
+            | RunnableLambda(log)
+            | prompt
+            | ServeChatModel)
