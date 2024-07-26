@@ -89,7 +89,7 @@ def simple_agent(message, history):
 def retriever_test(message, history):
     retriever = default_context['DocRetriever']
     re = retriever.invoke(message)
-    res = '\n'.join([doc.page_content for doc in re])
+    res = '\n\n---\n\n## '.join([doc.page_content for doc in re])
     msg = f'# 🤗【{message}】的检索结果\n\n' + res
     return msg
 
