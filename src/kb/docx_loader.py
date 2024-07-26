@@ -1,8 +1,8 @@
 import uuid
 from typing import Iterable, Iterator
 
-from docx import Document
-from docx.oxml import CT_P, CT_Tbl
+from langchain_core.document_loaders import BaseLoader
+from langchain_core.documents import Document
 
 
 class Node:
@@ -52,11 +52,13 @@ def convert_table_to_markdown(table):
     return markdown
 
 
-class DocxLoader(Iterable[Node]):
+class DocxLoader(BaseLoader, Iterable[Node]):
 
     def __init__(self, file_path):
         self.file_path = file_path
         self.filename = file_path.split('/')[-1]
+
+        from docx import Document
         self.document = Document(self.file_path)
         self.root = self.parse_to_tree()
 
@@ -66,6 +68,7 @@ class DocxLoader(Iterable[Node]):
         point = root
         p_i = -1
         t_i = -1
+        from docx.oxml import CT_P, CT_Tbl
         for element in doc.element.body.inner_content_elements:
             if isinstance(element, CT_P):
                 p_i += 1
@@ -94,3 +97,10 @@ class DocxLoader(Iterable[Node]):
                     yield from traverse(child)
 
         yield from traverse(self.root)
+
+    def lazy_load(self) -> Iterator[Document]:
+        base_id = uuid.uuid5(uuid.uuid4(), self.file_path).int
+        for node in self:
+            base_id += 1
+            yield Document(page_content=node.get_value_from_tree(),
+                           metadata={'parent': node.parent.uuid, 'idx': base_id})
