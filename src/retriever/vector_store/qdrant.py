@@ -1,8 +1,8 @@
 from typing import Dict
 
-from langchain_community.embeddings import XinferenceEmbeddings
 from langchain_qdrant import Qdrant
 
+from embedding import xinference_embedding
 from retriever import vector_store
 
 
@@ -16,10 +16,11 @@ def qdrant_client(qdrant_config):
 class QdrantVectorStore(Qdrant):
     """Qdrant VectorStore."""
 
-    def __init__(self, qdrant_client, xinference_embedding_config, qdrant_vectorstore_config: Dict):
+    def __init__(self, qdrant_client, xinference_embedding: xinference_embedding.XinferenceEmbeddings,
+                 qdrant_vectorstore_config: Dict):
         client = qdrant_client
         collection = 'qdrant_default'
-        embed = XinferenceEmbeddings(**xinference_embedding_config)
+        embed = xinference_embedding
         if qdrant_vectorstore_config:
             collection = qdrant_vectorstore_config.get(
                 'collection_name', 'qdrant_default')
