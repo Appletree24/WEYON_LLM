@@ -1,7 +1,9 @@
 from unittest import TestCase
-from retriever import qdrant_retriever
-from basic import default_context
+
 from langchain_core.vectorstores import VectorStoreRetriever
+
+from basic import default_context
+from retriever import qdrant_retriever
 
 _ = qdrant_retriever
 

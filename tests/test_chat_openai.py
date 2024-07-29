@@ -1,6 +1,7 @@
 from unittest import TestCase
-from llm import chat_openai
+
 import llm
+from llm import chat_openai
 from llm import default_register
 
 

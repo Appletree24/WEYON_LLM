@@ -32,11 +32,11 @@ def profile_rag_msg(message, history):
     pro_chain: Runnable = default_context['profile_query']
     res = pro_chain.invoke({'chat_history': history_msg, 'question': message})
     if res['stop']:
-        yield res['profile']
+        yield res['profile'] + "🥰"
     else:
         partial_message = ""
         if res['keywords']:
-            tips = f"> 🤗关键词 : **{res['keywords']}**\n\n"
+            tips = f"> 🤔 关键词 : **{res['keywords']}**\n\n"
             partial_message += tips
             yield partial_message
         retriever_chain: Runnable = default_context['retriever_chain']
@@ -44,6 +44,7 @@ def profile_rag_msg(message, history):
         for chunk in retriever_chain.stream(res):
             partial_message += chunk.content
             yield partial_message
+        yield partial_message + "🥰"
 
 
 def profile_rag(message, history):
@@ -54,6 +55,7 @@ def profile_rag(message, history):
     for chunk in chain.stream({"question": message, "chat_history": history_msg}):
         partial_message = partial_message + chunk.content
         yield partial_message
+    yield partial_message + "🥰"
 
 
 def simple_rag(message, history):
@@ -65,6 +67,7 @@ def simple_rag(message, history):
     for chunk in chain.stream([message, history_msg]):
         partial_message = partial_message + chunk.content
         yield partial_message
+    yield partial_message + "🥰"
 
 
 def simple_chat(message, history):
@@ -89,8 +92,11 @@ def simple_agent(message, history):
 def retriever_test(message, history):
     retriever = default_context['DocRetriever']
     re = retriever.invoke(message)
-    res = '\n\n---\n\n## '.join([doc.page_content for doc in re])
-    msg = f'# 🤗【{message}】的检索结果\n\n' + res
+    if len(re) > 0:
+        res = '\n\n---\n\n## '.join([doc.page_content for doc in re])
+    else:
+        return "# 🥹 未找到相关内容"
+    msg = f'# 🥰【{message}】的检索结果\n\n##' + res
     return msg
 
 
