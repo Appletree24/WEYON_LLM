@@ -9,6 +9,12 @@ serve_chat_model_config:
 
 remember_history: 8
 
+profile_query_prompt:
+  path: ../resources/profile-query-prompt.yml
+
+profiled_query_prompt:
+  path: ../resources/profiled-query-prompt.yml
+
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:

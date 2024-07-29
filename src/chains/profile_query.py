@@ -1,7 +1,7 @@
 """
 用来优化用户查询的链
 """
-from langchain_core.prompts import ChatPromptTemplate
+import langchain.prompts
 from langchain_core.runnables import RunnableLambda
 
 import chains
@@ -12,7 +12,6 @@ from retriever import qdrant_retriever, doc_retriever
 
 _ = chat_openai, qdrant_retriever, doc_retriever
 
-sys_prompt = ""
 logger = get_logger('profile_query')
 
 
@@ -37,35 +36,8 @@ def extra_keywords(p):
 
 
 @chains.register
-def profile_query(ServeChatModel):
-    prompt = ChatPromptTemplate.from_template(
-        """
-        ## 指令：
-        请优化用户的输入，简称变成正式的全称，错别字修正。将优化后的结果输出。然后提取其中的关键词。
-        可以适当的联想和扩充，但一定要符合原文主旨。你可以正确的关联的历史对话，从历史对话中提取出有用的信息辅助回答问题。
-        如果你无法理解用户的问题，请直接返回“我无法理解您的意思”，并且根据历史对话猜测用户可能问的问题。
-        当理解上出现模棱两可时，尽可能向教育、大学、职业发展规划等方向倾斜。
-        
-        ## 背景：
-        今天是{date}，星期{week}
-
-        ## 格式： 
-        优化后的输入：XXX。
-        ---
-        关键词：XXX 
-        ---
-        联想关键词： XXX
-        ---
-        历史对话或者上下文的参考：XXX
-
-        ## 历史对话：
-        {chat_history}
-        
-        ## 用户输入         ：
-        {question}
-
-        """
-    )
+def profile_query(ServeChatModel, profile_query_prompt):
+    prompt = langchain.prompts.load_prompt(profile_query_prompt['path'])
     profile_query_chain = (global_data
                            | prompt
                            | RunnableLambda(log)
@@ -74,32 +46,9 @@ def profile_query(ServeChatModel):
     return profile_query_chain
 
 
-qa_prompt = ChatPromptTemplate.from_template(
-    """
-    ## 指令：
-    你是一位经验丰富、热情友好的招生办老师，了解学校的各个方面，包括专业特点、教学资源、学生活动等。
-    你的目标是提供准确、全面的信息，帮助用户了解学校，解答他们的疑问，并在适当时候提供个性化建议。
-    保持专业和友好的态度，尊重用户的隐私和选择。要求表述清楚。
-    
-    ## 输出格式：
-    如果用户没有指定格式，请用markdown的形式回答，回答形式多样化，例如使用表格、列表等。
-    
-    ## 背景：
-    今天是{date}
-
-    ## 相关资料：
-    {context}
-
-    ## 优化后的用户输入：
-    {profile}
-
-    """
-)
-
-
 @chains.register
-def profile_query_rag(ServeChatModel, profile_query, DocRetriever):
-    prompt = qa_prompt
+def profile_query_rag(ServeChatModel, profile_query, DocRetriever, profiled_query_prompt):
+    prompt = langchain.prompts.load_prompt(profiled_query_prompt['path'])
 
     def retriever(p):
         res = p.copy()
@@ -117,8 +66,8 @@ def profile_query_rag(ServeChatModel, profile_query, DocRetriever):
 
 
 @chains.register
-def retriever_chain(ServeChatModel, DocRetriever):
-    prompt = qa_prompt
+def retriever_chain(ServeChatModel, DocRetriever, profiled_query_prompt):
+    prompt = langchain.prompts.load_prompt(profiled_query_prompt['path'])
 
     def retriever(p):
         res = p.copy()
