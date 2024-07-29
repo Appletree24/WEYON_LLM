@@ -106,21 +106,37 @@ con_limit = 20
 
 import gradio as gr
 
+config = {
+    "theme": "soft",
+    "submit_btn": "发送",
+    "retry_btn": "重试",
+    "undo_btn": "撤回并重新编辑",
+    "clear_btn": "新建对话",
+    "stop_btn": "停止",
+    "chatbot": gr.Chatbot(placeholder="Powered By WeYon AI Department", likeable=True, label="Chatbot", scale=1,
+                          height=200),
+    "textbox": gr.Textbox(placeholder="与WeYon AI对话", scale=8),
+}
+
 if __name__ == "__main__":
     rag_interface = gr.ChatInterface(simple_rag, title=f"{company_name} Question Rag", concurrency_limit=con_limit,
-                                     description=f"{company_name} 基于问题检索对话")
+                                     description=f"{company_name} 基于问题检索对话",
+                                     **config)
     profile_interface = gr.ChatInterface(profile_rag_msg, title=f"{company_name} Keywords Rag",
                                          concurrency_limit=con_limit,
-                                         description=f"{company_name} 基于关键词检索")
+                                         description=f"{company_name} 基于关键词检索",
+                                         **config
+                                         )
     chat_interface = gr.ChatInterface(simple_chat, title=f"{company_name} Chat", concurrency_limit=con_limit,
-                                      description=f"{company_name} 直接与模型对话")
+                                      description=f"{company_name} 直接与模型对话",
+                                      **config)
     agent_interface = gr.ChatInterface(simple_agent, title=f"{company_name} Agent", concurrency_limit=con_limit,
-                                       description=f"{company_name} 查询数据库的智能体")
-    # markdown形式输出output
-
+                                       description=f"{company_name} 查询数据库的智能体",
+                                       **config)
     retriever_test_interface = gr.ChatInterface(fn=retriever_test,
                                                 title=f"{company_name} Retriever命中率测试",
-                                                description="用来测试Retriever命中率，生产环境记得关闭！！当前测试对象为DocRetriever")
+                                                description="用来测试Retriever命中率，生产环境记得关闭！！当前测试对象为DocRetriever",
+                                                **config)
 
     from fastapi import FastAPI
 

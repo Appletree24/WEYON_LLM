@@ -58,8 +58,8 @@ def profile_query_rag(ServeChatModel, profile_query, DocRetriever, profiled_quer
 
     return (global_data
             | profile_query
-            | global_data
             | RunnableLambda(retriever)
+            | global_data
             | RunnableLambda(log)
             | prompt
             | ServeChatModel)
