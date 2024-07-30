@@ -32,7 +32,7 @@ def profile_rag_msg(message, history):
     pro_chain: Runnable = default_context['profile_query']
     res = pro_chain.invoke({'chat_history': history_msg, 'question': message})
     if res['stop']:
-        yield res['profile'] + "🥰"
+        yield res['profile'][0] + "🥰"
     else:
         partial_message = ""
         if res['keywords']:
@@ -96,7 +96,7 @@ def retriever_test(message, history):
         res = '\n\n---\n\n## '.join([doc.page_content for doc in re])
     else:
         return "# 🥹 未找到相关内容"
-    msg = f'# 🥰【{message}】的检索结果\n\n##' + res
+    msg = f'# 🥰【{message}】的检索结果\n\n## ' + res
     return msg
 
 
