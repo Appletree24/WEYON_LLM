@@ -116,7 +116,8 @@ def process_task(txt: str, name: str, description: str, spk_id: str, bg_replace:
             if convert_result.returncode == 0:
                 print("视频格式转换成功")
             else:
-                raise RuntimeError("视频格式转换失败")
+                print("视频格式转换失败,改为发送.avi格式视频")
+                video_path = BG_REPLACE_VIDEO_PATH + name + ".avi"
         else:
             raise RuntimeError("背景替换失败")
     else:
@@ -223,7 +224,7 @@ def get_video(filename):
         video_file.write(f.read())
     video_file.seek(0)
     del content_dir[name]
-    ###如果要进行用户管理则将del 更改成为将用户数据存放文件或数据库中 请勿存放在栈区 防止内存泄漏 
+    # 如果要进行用户管理则将del 更改成为将用户数据存放文件或数据库中 请勿存放在栈区 防止内存泄漏
     return send_file(video_file, mimetype='video/' + video_format[:1], as_attachment=True, download_name="video")
 
 
