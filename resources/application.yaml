@@ -18,7 +18,7 @@ profiled_query_prompt:
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
-  collection_name: "word_reader_test_1024"
+  collection_name: "word_pic_reader_test_1024"
 retriever_config:
   k: 15
   score_threshold: 0.65

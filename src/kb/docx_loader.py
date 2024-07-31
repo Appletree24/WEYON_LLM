@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Iterable, Iterator
 
@@ -54,10 +55,11 @@ def convert_table_to_markdown(table):
 
 class DocxLoader(BaseLoader, Iterable[Node]):
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, img_path='img', img_prefix='../img/'):
+        self.img_prefix = img_prefix
         self.file_path = file_path
         self.filename = file_path.split('/')[-1]
-
+        self.img_path = img_path
         from docx import Document
         self.document = Document(self.file_path)
         self.root = self.parse_to_tree()
@@ -65,6 +67,7 @@ class DocxLoader(BaseLoader, Iterable[Node]):
     def parse_to_tree(self):
         root = Node(float('inf'), self.filename)
         doc = self.document
+        paragraphs = doc.paragraphs
         point = root
         p_i = -1
         t_i = -1
@@ -72,8 +75,16 @@ class DocxLoader(BaseLoader, Iterable[Node]):
         for element in doc.element.body.inner_content_elements:
             if isinstance(element, CT_P):
                 p_i += 1
-                para = doc.paragraphs[p_i]
+                para = paragraphs[p_i]
                 if para.runs.__len__() == 0 or para.text.strip() == '':
+                    images = para._element.xpath('.//pic:pic')
+                    if images and paragraphs.__len__() > (p_i + 1) and paragraphs[p_i + 1].text.startswith('图'):
+                        name = paragraphs[p_i + 1].text
+                        pre_images = self._images_handle(name, images)
+                        print(name, pre_images)
+                        while point.tag <= 0:
+                            point = point.parent
+                        point = point.add_child(Node(0, pre_images))
                     continue
                 tag = para.style.font.size or 0
                 while point.tag <= tag:
@@ -83,9 +94,28 @@ class DocxLoader(BaseLoader, Iterable[Node]):
                 t_i += 1
                 table = doc.tables[t_i]
                 text = convert_table_to_markdown(table)
-                tag = 10.5
-                _ = point.add_child(Node(tag, text))
+                point = point.parent
+                point = point.add_child(Node(0, text))
         return root
+
+    def _images_handle(self, name, images):
+        res = ''
+        for i, image in enumerate(images):
+            image_data = image.xpath('.//a:blip/@r:embed')[0]
+            related_part = self.document.part.related_parts[image_data]
+            img = related_part.image
+            n = f'{name}_{i}.png'
+            import uuid
+            filename = f'{uuid.uuid4()}.png'
+            from os import path
+            if not path.exists(self.img_path):
+                os.makedirs(self.img_path)
+            file_path = path.join(self.img_path, filename)
+            fw = open(file_path, "wb")
+            fw.write(img.blob)
+            fw.close()
+            res += f'\n![{n}]({self.img_prefix}{filename})\n'
+        return res
 
     def __iter__(self):
         # 遍历树状结构，返回叶子节点
