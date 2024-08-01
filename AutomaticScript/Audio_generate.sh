@@ -1,3 +1,5 @@
+# CosyVoice音频生成脚本
+
 #!/bin/bash
 source /home/kemove/miniconda3/etc/profile.d/conda.sh
 set -e

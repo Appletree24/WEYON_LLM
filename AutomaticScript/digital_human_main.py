@@ -1,3 +1,15 @@
+#!//home/kemove/miniconda3/envs/lib/ python3.11.0
+# -*- coding:utf-8 -*-
+# @FileName  :digital_human_main.py
+# @Time      :2024/08/01 11:07:01
+# @Author    :Appletree24, acxgdxy, xiongxiao31
+# @Email     :1246908638zxc@gmail.com
+# @Software  :Vscode
+# @Description: 数字人启动主文件
+# @Version   :1.0
+# @Conda Env : base
+# 请不要用GPT生成代码中的注释，谢谢。
+
 import os
 from flask import Flask, request, send_file, jsonify, make_response
 from flask_cors import CORS
@@ -7,6 +19,7 @@ import datetime
 import subprocess
 import uuid
 import time
+
 app = Flask(__name__)
 CORS(app)  # 启用CORS
 content_dir = {}
@@ -27,11 +40,13 @@ def get_gpu_utilization():
     result = subprocess.run(['nvidia-smi', '--query-gpu=memory.used',
                             '--format=csv,noheader,nounits'], stdout=subprocess.PIPE)
     memory_usage = result.stdout.decode('utf-8').strip().split('\n')
-    print("111\n")
     return [int(mem) for mem in memory_usage]
 
 
 def tone_prompt_process() -> None:
+    """
+    将音色提示词文件进行去重，防止冗余
+    """
     seen_descriptions = set()
     lines_to_keep = []
 
@@ -51,7 +66,7 @@ def process_task(txt: str, name: str, description: str, spk_id: str, bg_replace:
     """
     txt: str 存放文本信息。
     name: str 存放uuid，task_id。
-    description: str 存放对语气的描述。
+    description: str 存放对语气的描述词。
     spk_id: str “中文男”、“中文女”、
     bg_replace: int 是否需要更换背景，0不用， 1需要更换背景
     video_format: str 视频格式 如“.mp4”， “.avi”
@@ -62,7 +77,6 @@ def process_task(txt: str, name: str, description: str, spk_id: str, bg_replace:
     if name == "":
         raise ValueError("生成文件名不能为空")
     CUDA_ID = -1
-
     # 判断显卡是否空闲，如果没有空闲就等待 5 秒。其中 4 号与 5 号是 A100 不要去使用
     # 4号和5号和Nvidia-smi输出对不上，正常，因为两边总线顺序不一样,Pytorch是FASTEST-FIRST，NVIDIA-SMI是PCIE
     while CUDA_ID == -1:
@@ -317,5 +331,3 @@ def handle_post():
 if __name__ == '__main__':
     tone_dict = {}
     app.run(host='0.0.0.0', port=5218, debug=True)
-
- # 第一个参数是需要接入数字人的文本，第二个输入时保存的文件名称
