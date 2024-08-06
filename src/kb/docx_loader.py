@@ -23,7 +23,10 @@ class Node:
     def get_value_from_tree(self):
         node = self
         parent_data = node.get_parent_values()
-        text = '\n'.join(parent_data) + '\n' + node.value
+        # 从根节点开始，逐层向下遍历，遍历时在每个节点前加上n个“#”,其中n为节点级别，根节点为1
+        for i, parent_datum in enumerate(parent_data):
+            parent_data[i] = f"{'#' * (i + 1)} {parent_datum}"
+        text = "\n".join(parent_data) + "\n" + self.value
         return text
 
     def get_parent_values(self):
