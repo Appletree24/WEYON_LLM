@@ -1,5 +1,6 @@
-from langchain_community.embeddings import XinferenceEmbeddings
 from unittest import TestCase
+
+from langchain_community.embeddings import XinferenceEmbeddings
 
 
 class TestLocalEmbedding(TestCase):

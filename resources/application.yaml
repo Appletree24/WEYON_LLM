@@ -4,19 +4,24 @@
 serve_chat_model_config:
   openai_api_base: "http://192.168.100.111:8001/v1"
   model: "qwen2-pro"
-  max_tokens: 25000
+  max_tokens: 30000
   openai_api_key: "dummy"
 
 remember_history: 8
 
+profile_query_prompt:
+  path: ../resources/profile-query-prompt.yml
+
+profiled_query_prompt:
+  path: ../resources/profiled-query-prompt.yml
+
 qdrant_config:
   location: "http://192.168.100.111:6333"
 qdrant_vectorstore_config:
-  collection_name: "word_reader_test_1024"
+  collection_name: "word_pic_reader_test_1024"
 retriever_config:
-  k: 15
-  score_threshold: 0.65
-modelscope_embeddings_model_id: iic/nlp_gte_sentence-embedding_chinese-base
+  k: 5
+  score_threshold: 0.85
 xinference_embedding_config:
   server_url: "http://192.168.100.111:9997"
   model_uid: "bge-m3"

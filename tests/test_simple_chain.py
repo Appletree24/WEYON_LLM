@@ -2,8 +2,8 @@ from unittest import TestCase
 
 from langchain_core.runnables import Runnable
 
-from chains import simple_chain
 from basic import default_context
+from chains import simple_chain
 
 _ = simple_chain
 

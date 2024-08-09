@@ -1,8 +1,10 @@
 from unittest import TestCase
+
+from qdrant_client import QdrantClient
+
+from basic import default_context
 from embedding import modelscope_embedding
 from retriever.vector_store import qdrant
-from basic import default_context
-from qdrant_client import QdrantClient
 
 
 class TestQdrantVectorStore(TestCase):

@@ -1,5 +1,5 @@
-from typing import Dict, Generic, TypeVar
 import inspect
+from typing import Dict, TypeVar
 
 T = TypeVar("T")
 
@@ -36,7 +36,7 @@ class ConfigurationContext(Context[T]):
                 profiles = config['profiles']['includes']
                 for profile in profiles:
                     abs_path = path.join(base_path, profile)
-                    config.update(self.parse(abs_path))
+                    config.update(self.parse(str(abs_path)))
         return config
 
 

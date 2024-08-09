@@ -4,9 +4,9 @@ from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 import chains
 from llm import chat_openai
 from logs import get_logger
-from retriever import qdrant_retriever
+from retriever import qdrant_retriever, doc_retriever
 
-_ = chat_openai, qdrant_retriever
+_ = chat_openai, qdrant_retriever, doc_retriever
 
 logger = get_logger('simple_chain')
 
@@ -14,7 +14,7 @@ sys_prompt = "你是一个拥有丰富知识的AI助手，能够充分利用上�
 
 
 @chains.register
-def simple_rag(qdrant_retriever):
+def simple_rag(DocRetriever):
     prompt = ChatPromptTemplate.from_messages([
         ('system', sys_prompt),
         ('system', "今天是{date},星期{week}."),
@@ -34,7 +34,7 @@ def simple_rag(qdrant_retriever):
     from datetime import datetime
     basic_chain = ({"date": RunnableLambda(lambda x: datetime.now().strftime("%Y年%m月%d日 %H:%M")),
                     "week": RunnableLambda(lambda x: datetime.now().strftime("%A"))}
-                   | {"context": RunnableLambda(lambda x: qdrant_retriever.invoke(x, config=tmp_get_config())),
+                   | {"context": RunnableLambda(lambda x: DocRetriever.invoke(x, config=tmp_get_config())),
                       "question": RunnablePassthrough(lambda x: x[0]),
                       "chat_history": RunnablePassthrough(lambda x: x[1])}
                    | prompt
