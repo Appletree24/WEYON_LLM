@@ -83,11 +83,12 @@ class DocxLoader(BaseLoader, Iterable[Node]):
                     images = para._element.xpath('.//pic:pic')
                     if images and paragraphs.__len__() > (p_i + 1) and paragraphs[p_i + 1].text.startswith('图'):
                         name = paragraphs[p_i + 1].text
+                        tag = paragraphs[p_i + 1].style.font.size or 0
                         pre_images = self._images_handle(name, images)
                         print(name, pre_images)
-                        while point.tag <= 0:
+                        while point.tag <= tag:
                             point = point.parent
-                        point = point.add_child(Node(0, pre_images))
+                        point = point.add_child(Node(tag, pre_images))
                     continue
                 tag = para.style.font.size or 0
                 while point.tag <= tag:

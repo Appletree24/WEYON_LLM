@@ -147,7 +147,7 @@ if __name__ == "__main__":
     gr.mount_gradio_app(app, agent_interface, path="/agent")
     gr.mount_gradio_app(app, retriever_test_interface, path="/retriever")
 
-    app.mount("/", StaticFiles(directory="./pages", html=True), name="pages")
+    app.mount("/", StaticFiles(directory="../resources/static", html=True), name="static")
 
     import uvicorn
 

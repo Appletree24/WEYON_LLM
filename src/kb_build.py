@@ -25,7 +25,7 @@ if __name__ == '__main__':
     path = Path('../data')
     for file in path.rglob('*.docx'):
         p = str(file.absolute())
-        loader = DocxLoader(p, img_path='./pages/img', img_prefix='../img/')
+        loader = DocxLoader(p, img_path='../resources/static/img', img_prefix='../img/')
         docs = loader.load()
         for doc in tqdm(docs, desc=loader.filename):
             doc_retriever.QdrantVectorStore.add_documents([doc])
