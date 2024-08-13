@@ -21,7 +21,7 @@ qdrant_vectorstore_config:
   collection_name: "word_pic_reader_test_1024"
 retriever_config:
   k: 5
-  score_threshold: 0.85
+  score_threshold: 0.65
 xinference_embedding_config:
   server_url: "http://192.168.100.111:9997"
   model_uid: "bge-m3"
