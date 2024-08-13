@@ -11,7 +11,7 @@
 import os
 
 from langchain import hub
-from langchain import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.callbacks import get_openai_callback

@@ -168,3 +168,4 @@ RAG/query_demo.ipynb
 .idea
 images
 *.db
+./data
