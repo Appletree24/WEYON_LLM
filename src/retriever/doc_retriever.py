@@ -2,7 +2,10 @@ from typing import List
 
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
-from langchain_core.retrievers import BaseRetriever
+from langchain_core.retrievers import BaseRetriever as LCBaseRetriever
+from llama_index.core import QueryBundle
+from llama_index.core.base.base_retriever import BaseRetriever as LIBaseRetriever
+from llama_index.core.schema import NodeWithScore, TextNode
 from qdrant_client.models import models
 
 import retriever
@@ -20,7 +23,7 @@ class Config:
 
 
 @retriever.register
-class DocRetriever(BaseRetriever):
+class DocRetriever(LCBaseRetriever):
 
     @staticmethod
     def merge_with_common_prefix(str1, str2):
@@ -72,10 +75,28 @@ class DocRetriever(BaseRetriever):
         docs = [Document(page_content=doc.page_content) for doc in docs if doc.page_content != ""]
         return docs
 
-    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> List[Document]:
+    def __do_retriever(self, query: str):
+        # LangChain的retriever
         chunks = self.QdrantVectorStore.similarity_search(query=query, **self.retriever_config)
         doc_rel = self._remove_duplicates(chunk.metadata.get(Config.parent_id) for chunk in chunks)
         docs = self._get_docs_by_parent(doc_rel)
         self._resort_doc(docs)
         docs = self._merge_doc(docs)
         return docs
+
+    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> List[Document]:
+        return self.__do_retriever(query)
+
+    def as_llama_index_retriever(self):
+        return LMRetriever(self)
+
+
+class LMRetriever(LIBaseRetriever):
+    def __init__(self, lc_retriever: DocRetriever):
+        super().__init__()
+        self.lc_retriever = lc_retriever
+
+    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+        # LlamaIndex的retriever
+        result = (self.lc_retriever.invoke(query_bundle.query_str))
+        return [NodeWithScore(node=TextNode(text=res.page_content)) for res in result]

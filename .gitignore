@@ -168,3 +168,5 @@ RAG/query_demo.ipynb
 .idea
 images
 *.db
+**/img
+/data

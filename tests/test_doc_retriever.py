@@ -14,3 +14,11 @@ class TestDocRetriever(TestCase):
     def test_merge_with_common_prefix(self):
         merged = DocRetriever.merge_with_common_prefix("你好，我是Leo", "你好，我是Tony")
         self.assertEquals("你好，我是Leo\nTony", merged)
+
+    def test_llama_index_retriever(self):
+        doc_retriever: DocRetriever = default_context['DocRetriever']
+
+        res = doc_retriever.as_llama_index_retriever().retrieve("湖南大众传媒职业技术学院2023届毕业生就业质量年度报告")
+        self.assertIsNotNone(res)
+        self.assertGreater(len(res), 0)
+        print(res)
