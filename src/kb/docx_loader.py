@@ -98,7 +98,7 @@ class DocxLoader(BaseLoader, Iterable[Node]):
                 t_i += 1
                 table = doc.tables[t_i]
                 text = convert_table_to_markdown(table)
-                point = point.parent
+                point = point.parent or point
                 point = point.add_child(Node(0, text))
         return root
 
